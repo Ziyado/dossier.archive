@@ -104,7 +104,8 @@ header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom
 .folder:is(:hover,:focus-visible) .open{opacity:1}
 .folder:last-child:not(:hover):not(:focus-visible) .open{opacity:0}
 .folder:focus-visible .tab{outline:3px solid #f2d54a}
-.guide .tab{background:var(--gc,#121212);color:var(--gt,#f4f1e8);--w:24%}
+.guide .tab{background:var(--gc,#121212);color:var(--gt,#f4f1e8);left:calc(2% + var(--p,0) * 21%);width:max-content;max-width:calc(98% - var(--p,0) * 21%);padding:0 26px;clip-path:polygon(0 100%,14px 0,calc(100% - 14px) 0,100% 100%)}
+.guide .tab span{overflow:visible;text-overflow:clip}
 .guide .body{background:var(--gb,#cfccc3);color:#121212;grid-template-columns:minmax(0,1fr);cursor:default;padding-top:10px}
 .guide.empty .tab{opacity:.45}
 .guide .body .chips{padding:0}
@@ -204,7 +205,7 @@ header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom
 footer{border-top:1.5px solid var(--line);padding:18px 0 30px;font:300 10px/1.4 var(--f-edit);letter-spacing:.05em;text-transform:uppercase;font-size:11px;color:var(--soft);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 kbd{font:500 10px var(--f-struct);border:1px solid var(--soft);border-radius:4px;padding:1px 5px}
 @media(max-width:900px){.entry{grid-template-columns:minmax(0,1fr)}.plate{position:relative;top:0}.gindex{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:600px){.paper{width:calc(50% - 6px)}.paper img{height:90px}.cab{grid-template-columns:minmax(0,1fr)}.dr{aspect-ratio:2.3}.tab{--w:56%!important}.tab[data-p="1"]{--x:42%!important}.tab[data-p="2"]{--x:20%!important}.guide .tab{--x:2%!important}.body{grid-template-columns:auto minmax(0,1fr)}.body .mono,.body .open{display:none}.notes{grid-template-columns:minmax(0,1fr)}.sheet{padding:28px 18px 24px 48px}.sheet::after{left:38px}.sheet::before{left:14px}.stamp{position:static;display:inline-block;margin-bottom:10px}.sheet h1{padding-right:0}}
+@media(max-width:600px){.guide .tab{left:calc(2% + var(--p,0) * 9%);max-width:calc(98% - var(--p,0) * 9%);padding:0 20px}.guide .tab span{overflow:hidden;text-overflow:ellipsis}.paper{width:calc(50% - 6px)}.paper img{height:90px}.cab{grid-template-columns:minmax(0,1fr)}.dr{aspect-ratio:2.3}.tab{--w:56%!important}.tab[data-p="1"]{--x:42%!important}.tab[data-p="2"]{--x:20%!important}.body{grid-template-columns:auto minmax(0,1fr)}.body .mono,.body .open{display:none}.notes{grid-template-columns:minmax(0,1fr)}.sheet{padding:28px 18px 24px 48px}.sheet::after{left:38px}.sheet::before{left:14px}.stamp{position:static;display:inline-block;margin-bottom:10px}.sheet h1{padding-right:0}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -364,10 +365,10 @@ function wireGuides(){
 }
 function stack(groups,label){
   let i=0,html="";
-  groups.forEach(g=>{
+  groups.forEach((g,gi)=>{
     const types=g.types||[];
     const gc=g.col||G.subCol[g.name]||(G.cats.find(c=>c.name===g.name)||{}).col||["#121212","#fff"];
-    html+=`<div class="folder guide${g.works.length?"":" empty"}" id="g-${slug(g.name)}" tabindex="0" style="--i:${i};z-index:${i+1};--gc:${gc[0]};--gt:${gc[1]};--gb:${tint(gc[0],.25)}"><span class="tab" style="--x:2%"><span>${esc(g.name)}</span><em>${String(g.works.length).padStart(3,"0")}</em></span>
+    html+=`<div class="folder guide${g.works.length?"":" empty"}" id="g-${slug(g.name)}" tabindex="0" style="--i:${i};z-index:${i+1};--gc:${gc[0]};--gt:${gc[1]};--gb:${tint(gc[0],.25)}"><span class="tab" style="--p:${[0,1,2,3,2,1][gi%6]}"><span>${esc(g.name)}</span><em>${String(g.works.length).padStart(3,"0")}</em></span>
      <span class="body"><span class="chips">${types.length?types.map(t=>{const n=g.works.filter(w=>w.types.includes(t)).length;return `<a class="chip${n?"":" off"}" href="#kind-${slug(t)}">${esc(t)} ${n}</a>`}).join(""):`<span class="chip">${g.works.length?g.works.length+" work"+(g.works.length>1?"s":""):"Nothing filed here yet"}</span>`}</span>${g.works.length?papersHTML(g.works):""}</span></div>`;
     i++;
   });
