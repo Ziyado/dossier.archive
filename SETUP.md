@@ -72,7 +72,8 @@ Images live on their own **Images** tab, one row per image:
 Ways to add images to a work:
 - **By name:** start the file name with the work ID and drop it into Originals, e.g. `PE-OPA-HBV-0004-1938 front.png` and `PE-OPA-HBV-0004-1938 back.png`. Each file becomes its own row on the Images tab, numbered 1, 2, 3 in the order they're found. Edit `order` afterwards if you want a different sequence.
 - **By hand:** add a row on Images, pick the `work_id`, type the file name into `image_file`, and set `order`.
-- **Image first:** a file with any other name gets a new draft work on Works, plus its own row on Images. Fill in the work, and add more images to it with either of the methods above.
+- **Numbered shots:** files whose names differ only by a trailing number (e.g. `MEDICOLT_VINYLCOV_SONO_1960_1.png` … `_4.png`) are kept together as one work, ordered 1, 2, 3, 4. If one of them is already linked to a work, any new ones join that same work. A 4-digit number such as a year doesn't count as an image number.
+- **Image first:** any other new file gets its own draft work on Works, plus a row on Images. Fill in the work, and add more images to it with any of the methods above.
 
 Each image gets its own web copy, named by uid and position (e.g. `0004-02_web.png`), in the original's format. The `status` column on Works shows how many images each work has.
 

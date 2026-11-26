@@ -161,6 +161,12 @@ function setupDropdowns(upTo) {
   ss.toast('Dropdowns ready for rows 2–' + last + '.', 'Archive', 5);
 }
 
+/** "MEDICOLT_VINYLCOV_SONO_1960_3.png" and "…_1960_1.png" share the key "medicolt_vinylcov_sono_1960":
+ *  the trailing number (and the extension) is dropped, so numbered shots of one object stay together. */
+function groupKey_(name) {
+  return String(name).replace(/\.[a-z0-9]+$/i, '').replace(/(\s*copy)?([ _-]*\(?\d{1,3}\)?)$/i, '').trim().toLowerCase();
+}
+
 /** Last Works row that holds an actual record. */
 function lastWorkRow_(sh, h) {
   const n = sh.getMaxRows() - 1;
@@ -270,9 +276,10 @@ function importNewFiles() {
   const wh = headerIndex_(wk), ih = headerIndex_(im);
   const works = wk.getRange(1, 1, Math.max(wk.getLastRow(), 1), wk.getLastColumn()).getValues();
   const imgs = im.getLastRow() > 1 ? im.getRange(2, 1, im.getLastRow() - 1, im.getLastColumn()).getValues() : [];
-  const used = new Set(), uidById = {}, nextOrder = {};
+  const used = new Set(), uidById = {}, nextOrder = {}, uidByGroup = {};
   imgs.forEach(r => {
     if (r[ih.image_file]) used.add(String(r[ih.image_file]));
+    if (r[ih.image_file] && +r[ih.uid]) uidByGroup[groupKey_(r[ih.image_file])] = +r[ih.uid];
     if (r[ih.drive_full_id]) used.add('id:' + r[ih.drive_full_id]);
     const u = +r[ih.uid]; if (u) nextOrder[u] = Math.max(nextOrder[u] || 1, (+r[ih.order] || 0) + 1);
   });
@@ -281,14 +288,18 @@ function importNewFiles() {
     maxUid = Math.max(maxUid, +r[wh.uid] || 0);
     if (r[wh.work_id] && +r[wh.uid]) uidById[String(r[wh.work_id]).toUpperCase()] = +r[wh.uid];
   });
-  const files = DriveApp.getFolderById(CFG.ORIGINALS_FOLDER_ID).getFiles();
+  // new files, in natural name order (…_1, …_2, …_10), so image order follows the file numbers
+  const found = [], it = DriveApp.getFolderById(CFG.ORIGINALS_FOLDER_ID).getFiles();
+  while (it.hasNext()) {
+    const f = it.next();
+    if (/^image\//.test(f.getMimeType()) && !used.has(f.getName()) && !used.has('id:' + f.getId())) found.push(f);
+  }
+  found.sort((a, b) => a.getName().localeCompare(b.getName(), undefined, { numeric: true, sensitivity: 'base' }));
   const newWorks = [], newImages = [];
-  while (files.hasNext()) {
-    const f = files.next();
-    if (!/^image\//.test(f.getMimeType())) continue;
-    const name = f.getName();
-    if (used.has(name) || used.has('id:' + f.getId())) continue;
-    let uid = uidById[idInName_(name)];
+  for (const f of found) {
+    const name = f.getName(), group = groupKey_(name);
+    // 1) name starts with a work ID  2) a sibling file (same name, other number) already belongs to a work
+    let uid = uidById[idInName_(name)] || uidByGroup[group];
     if (!uid) {                                   // no work yet: start a draft work for it
       uid = ++maxUid;
       const row = new Array(works[0].length).fill('');
@@ -297,6 +308,7 @@ function importNewFiles() {
       row[wh.status] = 'draft: fill in the record';
       newWorks.push(row);
     }
+    uidByGroup[group] = uid;
     const order = nextOrder[uid] || 1; nextOrder[uid] = order + 1;
     const ir = new Array(TABS.Images.length).fill('');
     ir[ih.uid] = uid; ir[ih.order] = order; ir[ih.image_file] = name; ir[ih.status] = 'waiting for sync';
@@ -357,6 +369,7 @@ function syncImages() {
       set('status', 'error: ' + err.message);
     }
   }
+  assignIds();          // refreshes the image counts on Works
   clearCache();
 }
 
@@ -547,4 +560,4 @@ function readCache_(cache) {
 }
 function clearCache() { CacheService.getScriptCache().remove('feed_n'); }
 
-if (typeof module !== 'undefined') module.exports = { buildPayload, parseSolutions, parseStyles, parseTypography, makeId_, abbr_, idInName_ };
+if (typeof module !== 'undefined') module.exports = { groupKey_, buildPayload, parseSolutions, parseStyles, parseTypography, makeId_, abbr_, idInName_ };
