@@ -483,6 +483,32 @@ function doGet(e) {
   return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
 }
 
+/** Contact form on the website → a row on the Messages tab. Bots that fill the hidden "website" field are ignored. */
+function doPost(e) {
+  const out = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const d = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    if (d.kind !== 'contact') return out({ ok: false, error: 'unknown request' });
+    if (d.website) return out({ ok: true });                                   // honeypot: pretend success
+    const clip = (v, n) => String(v || '').replace(/^[=+\-@]/, "'$&").slice(0, n).trim();   // no formulas from strangers
+    const name = clip(d.name, 120), email = clip(d.email, 160), topic = clip(d.topic, 80), msg = clip(d.message, 4000);
+    if (!name || !/^\S+@\S+\.\S+$/.test(email) || !msg) return out({ ok: false, error: 'missing fields' });
+    const lock = LockService.getScriptLock(); lock.waitLock(10000);
+    const ss = SpreadsheetApp.getActive();
+    let sh = ss.getSheetByName('Messages');
+    if (!sh) {
+      sh = ss.insertSheet('Messages');
+      sh.getRange(1, 1, 1, 6).setValues([['received', 'name', 'email', 'about', 'message', 'status']]).setFontWeight('bold').setBackground('#f2d54a');
+      sh.setFrozenRows(1);
+    }
+    sh.appendRow([new Date(), name, email, topic, msg, 'new']);
+    lock.releaseLock();
+    return out({ ok: true });
+  } catch (err) {
+    return out({ ok: false, error: 'server error' });
+  }
+}
+
 function readTables_() {
   const ss = SpreadsheetApp.getActive(), t = {};
   Object.keys(TABS).forEach(name => {
