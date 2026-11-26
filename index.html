@@ -105,19 +105,23 @@ header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom
 .guide.empty .tab{opacity:.55}
 .guide .body .chips{padding:0}
 .guide .chip{background:#f4f1e8;border-color:#121212;color:#121212}
-.guide .body{bottom:-190px;align-content:start}
-.papers{position:relative;display:block;height:210px;margin-top:12px;container-type:inline-size}
+.guide .body{bottom:auto;min-height:150px;align-content:start;padding-bottom:18px}
+.guide:not(:hover):not(:focus-within) .body{max-height:150px;overflow:hidden}
+.guide:last-child:not(:hover):not(:focus-within) .body>*{opacity:0}
+.papers{position:relative;display:block;height:var(--ph,210px);margin-top:12px;transition:height .45s}
 .paper{position:absolute;top:16px;left:calc(var(--k)*12px);width:150px;background:#fbfaf6;color:#121212;padding:8px 8px 10px;text-decoration:none;border-top:4px solid var(--c,#121212);box-shadow:0 10px 18px -10px rgba(0,0,0,.6);transform:rotate(var(--r));transition:left .5s cubic-bezier(.2,.8,.2,1),top .5s,transform .25s;z-index:calc(10 - var(--k))}
 .paper img{display:block;width:100%;height:104px;object-fit:contain;background:#ecebe6}
 .paper em{display:block;font:500 11px/1.4 "IBM Plex Mono",monospace;font-style:normal;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .paper b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:400 15px/1.15 "Instrument Serif",serif}
 .paper.more{height:160px;display:grid;place-content:center;text-align:center;background:#121212;color:#f4f1e8}
-.guide:is(:hover,:focus-within) .paper{top:0;left:calc(var(--k) * min(166px,(100cqw - 150px) / max(var(--n) - 1,1)))}
+.guide:is(:hover,:focus-within) .paper{top:var(--gy,0px);left:var(--gx,0px);transform:rotate(0)}
 .guide .paper:is(:hover,:focus-visible){transform:rotate(0) translateY(-10px);z-index:20;outline:none}
 .guide .paper:focus-visible{box-shadow:0 0 0 3px #1f3fd1}
-.guide:is(:hover,:focus-within) ~ .folder{transform:translateY(270px)}
-.tray:has(.guide:is(:hover,:focus-within)) + .dfront{transform:translateY(270px)!important}
-.drawer:has(.guide:is(:hover,:focus-within)){padding-bottom:270px!important}
+.guide:is(:hover,:focus-within) ~ .folder{transform:translateY(var(--lift,270px))}
+.tray{transition:padding-bottom .4s cubic-bezier(.2,.8,.2,1)}
+.tray:has(.guide:is(:hover,:focus-within)){padding-bottom:var(--lift,270px)}
+.tray:has(.guide:is(:hover,:focus-within)) + .dfront{transform:none!important}
+.drawer:has(.guide:is(:hover,:focus-within)){padding-bottom:0!important}
 .guide .body .chips a.chip{color:#121212}
 .dfront{position:relative;z-index:60;height:120px;border:1.5px solid var(--line);background:var(--panel);border-radius:0 0 6px 6px;display:grid;place-items:center;align-content:center;gap:12px;transition:transform .4s}
 .tray:has(.folder:is(:hover,:focus-visible)) + .dfront{transform:translateY(116px)}
@@ -183,7 +187,7 @@ header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom
 footer{border-top:1.5px solid var(--line);padding:18px 0 30px;font-size:14px;color:var(--soft);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 kbd{font:500 12px "IBM Plex Mono",monospace;border:1px solid var(--soft);border-radius:4px;padding:1px 5px}
 @media(max-width:900px){.entry{grid-template-columns:minmax(0,1fr)}.plate{position:relative;top:0}.gindex{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:600px){.cab{grid-template-columns:minmax(0,1fr)}.dr{aspect-ratio:2.3}.tab{--w:56%!important}.tab[data-p="1"]{--x:42%!important}.tab[data-p="2"]{--x:20%!important}.guide .tab{--x:2%!important}.body{grid-template-columns:auto minmax(0,1fr)}.body .mono,.body .open{display:none}.notes{grid-template-columns:minmax(0,1fr)}.sheet{padding:28px 18px 24px 48px}.sheet::after{left:38px}.sheet::before{left:14px}.stamp{position:static;display:inline-block;margin-bottom:10px}.sheet h1{padding-right:0}}
+@media(max-width:600px){.paper{width:calc(50% - 6px)}.paper img{height:90px}.cab{grid-template-columns:minmax(0,1fr)}.dr{aspect-ratio:2.3}.tab{--w:56%!important}.tab[data-p="1"]{--x:42%!important}.tab[data-p="2"]{--x:20%!important}.guide .tab{--x:2%!important}.body{grid-template-columns:auto minmax(0,1fr)}.body .mono,.body .open{display:none}.notes{grid-template-columns:minmax(0,1fr)}.sheet{padding:28px 18px 24px 48px}.sheet::after{left:38px}.sheet::before{left:14px}.stamp{position:static;display:inline-block;margin-bottom:10px}.sheet h1{padding-right:0}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -298,8 +302,25 @@ function folderHTML(w,i,p){
    <p><b>${esc(w.kind)}</b>${esc(e?e.name:"Unknown client")} · ${esc(d?d.name:"Unknown designer")}<br>${esc(w.movement.replace(" Design",""))}${w.designStyle?" · "+esc(w.designStyle):""}</p><span class="open">Open entry</span></span></a>`;
 }
 function papersHTML(ws){
-  const show=ws.slice(0,7),n=show.length+(ws.length>7?1:0);
-  return `<span class="papers" style="--n:${n}">${show.map((w,k)=>`<a class="paper" href="#work-${w.key}" style="--k:${k};--r:${((hash(w.id)%9)-4)*.8}deg;--c:${w.col[0]}"><img loading="lazy" alt="" data-w="${w.key}" src="${esc(imgThumb(w))}"><em>${esc(w.id)}</em><b>${esc(w.title)}</b></a>`).join("")}${ws.length>7?`<span class="paper more" style="--k:7;--r:2deg"><b>+${ws.length-7} more</b><em>below this guide</em></span>`:""}</span>`;
+  return `<span class="papers">${ws.map((w,k)=>`<a class="paper" href="#work-${w.key}" style="--k:${Math.min(k,8)};--r:${((hash(w.id)%9)-4)*.8}deg;--c:${w.col[0]}"><img loading="lazy" alt="" data-w="${w.key}" src="${esc(imgThumb(w))}"><em>${esc(w.id)}</em><b>${esc(w.title)}</b></a>`).join("")}</span>`;
+}
+/* lay a guide's papers out as a grid that fits the drawer width, and lift the guides below by exactly its height */
+function openGuide(g){
+  const wrap=g.querySelector(".papers"),tray=g.closest(".tray");if(!tray)return;
+  if(wrap){const ps=[...wrap.children],W=wrap.clientWidth,pw=ps[0]?ps[0].offsetWidth:150,gap=W<420?10:16,per=Math.max(1,Math.floor((W+gap)/(pw+gap)));
+    const ph=Math.max(...ps.map(p=>p.offsetHeight),180);
+    ps.forEach((p,k)=>{p.style.setProperty("--gx",(k%per)*(pw+gap)+"px");p.style.setProperty("--gy",Math.floor(k/per)*(ph+gap)+"px")});
+    wrap.style.setProperty("--ph",Math.ceil(ps.length/per)*(ph+gap)+"px")}
+  requestAnimationFrame(()=>{const body=g.querySelector(".body");const need=32+(wrap?wrap.offsetTop+parseFloat(getComputedStyle(wrap).getPropertyValue("--ph"))+24:body.offsetHeight)-46;tray.style.setProperty("--lift",Math.max(need,60)+"px")});
+}
+function closeGuide(g){const wrap=g.querySelector(".papers");if(wrap)wrap.style.removeProperty("--ph")}
+function wireGuides(){
+  view.querySelectorAll(".guide").forEach(g=>{
+    g.addEventListener("pointerenter",()=>openGuide(g));
+    g.addEventListener("focusin",()=>openGuide(g));
+    g.addEventListener("pointerleave",()=>{if(!g.contains(document.activeElement))closeGuide(g)});
+    g.addEventListener("focusout",e=>{if(!g.contains(e.relatedTarget)&&!g.matches(":hover"))closeGuide(g)});
+  });
 }
 function stack(groups,label){
   let i=0,html="";
@@ -308,7 +329,6 @@ function stack(groups,label){
     html+=`<div class="folder guide${g.works.length?"":" empty"}" id="g-${slug(g.name)}" tabindex="0" style="--i:${i};z-index:${i+1}"><span class="tab" style="--x:2%"><span>${esc(g.name)}</span><em>${String(g.works.length).padStart(3,"0")}</em></span>
      <span class="body"><span class="chips">${types.length?types.map(t=>{const n=g.works.filter(w=>w.types.includes(t)).length;return `<a class="chip${n?"":" off"}" href="#kind-${slug(t)}">${esc(t)} ${n}</a>`}).join(""):`<span class="chip">${g.works.length?g.works.length+" work"+(g.works.length>1?"s":""):"Nothing filed here yet"}</span>`}</span>${g.works.length?papersHTML(g.works):""}</span></div>`;
     i++;
-    g.works.forEach((w,j)=>{html+=folderHTML(w,i,j%3);i++});
   });
   return `<div class="drawer"><div class="tray">${html}</div><div class="dfront"><span class="holder"><span class="card" style="--c:${label[1][0]};--t:${label[1][1]}">${esc(label[0])}</span></span><span class="pull"></span></div></div>`;
 }
@@ -317,10 +337,11 @@ function drawer(s){
   const prev=G.cats[(ci+G.cats.length-1)%G.cats.length],next=G.cats[(ci+1)%G.cats.length];
   const ws=G.order.filter(w=>w.category===c.name);
   const groups=G.subs[c.name].map(sub=>({name:sub,types:G.types[sub]||[],works:ws.filter(w=>w.subcategory===sub)}));
-  view.innerHTML=`<div class="head"><div><div class="crumbs"><a href="#cabinet">Cabinet</a> / Drawer</div><h1>${esc(c.name)}</h1><p>${ws.length} works in ${groups.length} sections. Hover a black guide to fan out its papers, or a tab to lift one folder.</p></div>
+  view.innerHTML=`<div class="head"><div><div class="crumbs"><a href="#cabinet">Cabinet</a> / Drawer</div><h1>${esc(c.name)}</h1><p>${ws.length} works in ${groups.length} sections. Hover a section, or tap it, to spread out its papers. Click a paper to open it.</p></div>
   <div class="row" style="display:flex;gap:8px"><a class="btn" href="#drawer-${prev.slug}" title="${esc(prev.name)}">← Previous drawer</a><a class="btn" href="#drawer-${next.slug}" title="${esc(next.name)}">Next drawer →</a></div></div>
   <div class="chips">${groups.map(g=>`<a class="chip${g.works.length?"":" off"}" href="#drawer-${c.slug}" data-g="g-${slug(g.name)}">${esc(g.name)} ${g.works.length}</a>`).join("")}</div>
   ${stack(groups,[c.name,c.col])}`;
+  wireGuides();
   view.querySelectorAll("[data-g]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();const t=document.getElementById(a.dataset.g);if(t){t.scrollIntoView({behavior:"smooth",block:"center"});t.focus({preventScroll:true})}}));
 }
 function nodePage(kind,key){
@@ -332,6 +353,7 @@ function nodePage(kind,key){
   const groups=G.cats.map(c=>({name:c.name,works:ws.filter(w=>w.category===c.name)})).filter(g=>g.works.length);
   view.innerHTML=`<div class="head"><div><div class="crumbs"><a href="#cabinet">Cabinet</a> / ${esc(crumb)}</div><h1>${esc(title)}</h1><p>${esc(sub)}${sub?". ":""}${ws.length} work${ws.length===1?"":"s"}${ws.length?", "+esc(years(ws)):""}.${note?" "+esc(note):""}</p></div></div>
   ${ws.length?stack(groups.map(g=>({...g,types:[...new Set(g.works.flatMap(w=>w.types))]})),[title,col]):"<p>No works linked yet.</p>"}`;
+  wireGuides();
 }
 
 function graphSVG(w){
