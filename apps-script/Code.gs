@@ -8,6 +8,7 @@
  *   Works      one row per work
  *   Entities   clients, with a short code in `abbr`
  *   Designers  people, print houses and studios
+ *   Images     one row per image, linked to its work by uid. A work can have any number; `order` sets the sequence.
  *   Solutions  category › subcategory › type (one type per row), with the codes used in IDs. Add a row to add an option.
  *              A work can take several types: comma-separated in Works › types.
  *   Styles     one column per movement (header = movement), styles listed below
@@ -38,7 +39,9 @@ const CFG = {
 const TABS = {
   Works: ['work_id', 'uid', 'publish', 'title', 'year', 'country', 'entity_id', 'category', 'subcategory', 'types',
     'designer_id', 'intent', 'movement', 'design_style', 'typography_style', 'dimensions', 'credit', 'source_url', 'notes',
-    'image_file', 'drive_full_id', 'drive_web_id', 'image_full_url', 'image_web_url', 'image_w', 'image_h', 'image_status'],
+    'status'],
+  Images: ['uid', 'work_id', 'order', 'image_file', 'caption', 'drive_full_id', 'drive_web_id', 'image_full_url',
+    'image_web_url', 'image_w', 'image_h', 'status'],
   Entities: ['entity_id', 'abbr', 'name', 'type', 'notes'],
   Designers: ['designer_id', 'name', 'kind', 'years_active', 'notes']
 };
@@ -84,6 +87,7 @@ function onEdit(e) {
     assignIds(top, bottom);
   }
   if (name === 'Entities' || name === 'Solutions' || name === 'Styles') assignIds();
+  if (name === 'Images') syncImageIds_();
 }
 
 function tidySolution_(sh, h, row, fromTypes) {
@@ -165,7 +169,7 @@ function assignIds(fromRow, toRow) {
   const last = sh.getLastRow();
   if (last < 2) return;
   const data = sh.getRange(1, 1, last, sh.getLastColumn()).getValues();
-  const sol = readSolutions_(), styles = readStyles_();
+  const sol = readSolutions_(), styles = readStyles_(), imgCount = countImages_();
   const ents = {};
   const ev = ss.getSheetByName('Entities').getDataRange().getValues();
   const eh = {}; ev[0].forEach((k, i) => eh[k] = i);
@@ -176,7 +180,7 @@ function assignIds(fromRow, toRow) {
   const a = Math.max(2, fromRow || 2), b = Math.min(last, toRow || last);
   for (let i = a - 1; i <= b - 1; i++) {
     const r = data[i];
-    const filled = [h.title, h.category, h.subcategory, h.entity_id, h.year, h.image_file].some(k => r[k] !== '');
+    const filled = [h.title, h.category, h.subcategory, h.entity_id, h.year].some(k => r[k] !== '');
     if (!filled) continue;
     let uid = +r[h.uid];
     if (!uid) { uid = ++maxUid; sh.getRange(i + 1, h.uid + 1).setValue(uid); }
@@ -185,100 +189,137 @@ function assignIds(fromRow, toRow) {
     const id = makeId_(sol.catCode[cat] || abbr_(cat, 3), sol.subCode[sub] || abbr_(sub, 3), ents[r[h.entity_id]], uid, year);
     if (id !== r[h.work_id]) sh.getRange(i + 1, h.work_id + 1).setValue(id);
 
-    let warn = '';
     const mv = String(r[h.movement]).trim(), st = String(r[h.design_style]).trim();
-    if (sub && sol.subCat[sub] && sol.subCat[sub] !== cat) warn = 'check: "' + sub + '" belongs to ' + sol.subCat[sub];
-    else if (mv && st && styles[mv] && styles[mv].indexOf(st) < 0) warn = 'check: "' + st + '" is not listed under ' + mv + ' in Styles';
-    else if (!id) warn = 'needs category, subcategory, entity and year for an ID';
-    const status = String(r[h.image_status]);
-    if (warn && status !== warn) sh.getRange(i + 1, h.image_status + 1).setValue(warn);
-    if (!warn && /^(check:|needs category)/.test(status)) sh.getRange(i + 1, h.image_status + 1).setValue(r[h.drive_web_id] ? 'linked' : 'no image yet');
+    let status;
+    if (sub && sol.subCat[sub] && sol.subCat[sub] !== cat) status = 'check: "' + sub + '" belongs to ' + sol.subCat[sub];
+    else if (mv && st && styles[mv] && styles[mv].indexOf(st) < 0) status = 'check: "' + st + '" is not listed under ' + mv + ' in Styles';
+    else if (!id) status = 'needs category, subcategory, entity and year for an ID';
+    else { const n = imgCount[uid] || 0; status = n ? n + (n > 1 ? ' images' : ' image') : 'no images yet'; }
+    if (String(r[h.status]) !== status) sh.getRange(i + 1, h.status + 1).setValue(status);
   }
+  syncImageIds_();
+}
+
+/** uid → number of linked images */
+function countImages_() {
+  const sh = SpreadsheetApp.getActive().getSheetByName('Images'), out = {};
+  if (!sh || sh.getLastRow() < 2) return out;
+  const h = headerIndex_(sh);
+  sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues()
+    .forEach(r => { if (+r[h.uid] && r[h.drive_web_id]) out[+r[h.uid]] = (out[+r[h.uid]] || 0) + 1; });
+  return out;
+}
+
+/** Keeps Images.work_id in step with Works, and fills uid when only a work ID was typed. */
+function syncImageIds_() {
+  const ss = SpreadsheetApp.getActive(), im = ss.getSheetByName('Images'), wk = ss.getSheetByName('Works');
+  if (!im || im.getLastRow() < 2) return;
+  const wh = headerIndex_(wk), ih = headerIndex_(im);
+  const byUid = {}, byId = {};
+  wk.getRange(2, 1, Math.max(wk.getLastRow() - 1, 1), wk.getLastColumn()).getValues().forEach(r => {
+    if (+r[wh.uid]) { byUid[+r[wh.uid]] = String(r[wh.work_id]); if (r[wh.work_id]) byId[String(r[wh.work_id]).toUpperCase()] = +r[wh.uid]; }
+  });
+  const v = im.getRange(2, 1, im.getLastRow() - 1, im.getLastColumn()).getValues();
+  v.forEach((r, i) => {
+    let uid = +r[ih.uid];
+    if (!uid && r[ih.work_id]) { uid = byId[String(r[ih.work_id]).trim().toUpperCase()] || 0; if (uid) im.getRange(i + 2, ih.uid + 1).setValue(uid); }
+    if (uid && byUid[uid] !== undefined && byUid[uid] !== String(r[ih.work_id])) im.getRange(i + 2, ih.work_id + 1).setValue(byUid[uid]);
+  });
 }
 
 /* ---------------- images ---------------- */
 
 function importNewFiles() {
-  const sh = SpreadsheetApp.getActive().getSheetByName('Works');
-  const h = headerIndex_(sh);
-  const data = sh.getDataRange().getValues();
-  const used = new Set();
-  data.slice(1).forEach(r => {
-    if (r[h.image_file]) used.add(String(r[h.image_file]));
-    if (r[h.drive_full_id]) used.add('id:' + r[h.drive_full_id]);
-    if (r[h.work_id]) used.add('wid:' + String(r[h.work_id]).toUpperCase());
+  const ss = SpreadsheetApp.getActive();
+  const wk = ss.getSheetByName('Works'), im = ss.getSheetByName('Images');
+  const wh = headerIndex_(wk), ih = headerIndex_(im);
+  const works = wk.getRange(1, 1, Math.max(wk.getLastRow(), 1), wk.getLastColumn()).getValues();
+  const imgs = im.getLastRow() > 1 ? im.getRange(2, 1, im.getLastRow() - 1, im.getLastColumn()).getValues() : [];
+  const used = new Set(), uidById = {}, nextOrder = {};
+  imgs.forEach(r => {
+    if (r[ih.image_file]) used.add(String(r[ih.image_file]));
+    if (r[ih.drive_full_id]) used.add('id:' + r[ih.drive_full_id]);
+    const u = +r[ih.uid]; if (u) nextOrder[u] = Math.max(nextOrder[u] || 1, (+r[ih.order] || 0) + 1);
+  });
+  let maxUid = 0;
+  works.slice(1).forEach(r => {
+    maxUid = Math.max(maxUid, +r[wh.uid] || 0);
+    if (r[wh.work_id] && +r[wh.uid]) uidById[String(r[wh.work_id]).toUpperCase()] = +r[wh.uid];
   });
   const files = DriveApp.getFolderById(CFG.ORIGINALS_FOLDER_ID).getFiles();
-  const add = [];
+  const newWorks = [], newImages = [];
   while (files.hasNext()) {
     const f = files.next();
     if (!/^image\//.test(f.getMimeType())) continue;
     const name = f.getName();
-    if (used.has(name) || used.has('id:' + f.getId()) || used.has('wid:' + idInName_(name))) continue;
-    const row = new Array(data[0].length).fill('');
-    row[h.publish] = false;
-    row[h.title] = name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').trim();
-    row[h.image_file] = name;
-    row[h.image_status] = 'draft: fill in the record';
-    add.push(row);
+    if (used.has(name) || used.has('id:' + f.getId())) continue;
+    let uid = uidById[idInName_(name)];
+    if (!uid) {                                   // no work yet: start a draft work for it
+      uid = ++maxUid;
+      const row = new Array(works[0].length).fill('');
+      row[wh.uid] = uid; row[wh.publish] = false;
+      row[wh.title] = name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').trim();
+      row[wh.status] = 'draft: fill in the record';
+      newWorks.push(row);
+    }
+    const order = nextOrder[uid] || 1; nextOrder[uid] = order + 1;
+    const ir = new Array(TABS.Images.length).fill('');
+    ir[ih.uid] = uid; ir[ih.order] = order; ir[ih.image_file] = name; ir[ih.status] = 'waiting for sync';
+    newImages.push(ir);
   }
-  if (add.length) {
-    const start = sh.getLastRow() + 1;
-    sh.getRange(start, 1, add.length, add[0].length).setValues(add);
-    if (!sh.getRange(start + add.length - 1, h.subcategory + 1).getDataValidation()) setupDropdowns();
-    assignIds(start, start + add.length - 1);
+  if (newWorks.length) {
+    const start = wk.getLastRow() + 1;
+    wk.getRange(start, 1, newWorks.length, newWorks[0].length).setValues(newWorks);
+    if (!wk.getRange(start + newWorks.length - 1, wh.subcategory + 1).getDataValidation()) setupDropdowns();
   }
-  return add.length;
+  if (newImages.length) im.getRange(im.getLastRow() + 1, 1, newImages.length, newImages[0].length).setValues(newImages);
+  return newImages.length;
 }
 
 function syncImages() {
   const started = Date.now();
-  const sh = SpreadsheetApp.getActive().getSheetByName('Works');
-  const h = headerIndex_(sh);
-  const data = sh.getDataRange().getValues();
+  const im = SpreadsheetApp.getActive().getSheetByName('Images');
+  if (!im || im.getLastRow() < 2) return;
+  syncImageIds_();
+  const h = headerIndex_(im);
+  const data = im.getRange(1, 1, im.getLastRow(), im.getLastColumn()).getValues();
   const webFolder = DriveApp.getFolderById(CFG.WEB_FOLDER_ID);
-  const byName = {}, byId = {};
+  const byName = {};
   const it = DriveApp.getFolderById(CFG.ORIGINALS_FOLDER_ID).getFiles();
-  while (it.hasNext()) {
-    const f = it.next();
-    byName[f.getName()] = f;
-    const wid = idInName_(f.getName());
-    if (wid && !byId[wid]) byId[wid] = f;
-  }
+  while (it.hasNext()) { const f = it.next(); byName[f.getName()] = f; }
+
   for (let i = 1; i < data.length; i++) {
-    if (Date.now() - started > CFG.MAX_RUN_MS) break;
+    if (Date.now() - started > CFG.MAX_RUN_MS) break;          // the trigger continues next run
     const r = data[i];
     const uid = +r[h.uid];
-    if (!uid) continue;
-    if (r[h.drive_full_id] && r[h.drive_web_id]) continue;
-    const set = (k, v) => sh.getRange(i + 1, h[k] + 1).setValue(v);
+    if (!uid || (r[h.drive_full_id] && r[h.drive_web_id])) continue;
+    const set = (k, v) => im.getRange(i + 1, h[k] + 1).setValue(v);
     try {
-      const file = r[h.drive_full_id] ? DriveApp.getFileById(r[h.drive_full_id])
-        : byName[String(r[h.image_file])] || byId[String(r[h.work_id]).toUpperCase()];
-      if (!file) { if (r[h.work_id]) set('image_status', 'no image: name it "' + r[h.work_id] + ' ….jpg" or type its file name in image_file'); continue; }
+      const file = r[h.drive_full_id] ? DriveApp.getFileById(r[h.drive_full_id]) : byName[String(r[h.image_file])];
+      if (!file) { set('status', 'file not found in Originals: check the name in image_file'); continue; }
       shareByLink_(file);
       const meta = Drive.Files.get(file.getId(), { fields: 'thumbnailLink,imageMediaMetadata(width,height)' });
       set('drive_full_id', file.getId());
       set('image_file', file.getName());
       set('image_full_url', 'https://drive.google.com/file/d/' + file.getId() + '/view');
       if (meta.imageMediaMetadata) { set('image_w', meta.imageMediaMetadata.width); set('image_h', meta.imageMediaMetadata.height); }
-      if (!meta.thumbnailLink) { set('image_status', 'waiting for Drive to process the image, retry later'); continue; }
+      if (!meta.thumbnailLink) { set('status', 'waiting for Drive to process the image, retry later'); continue; }
       const url = meta.thumbnailLink.replace(/=s\d+(-[a-z0-9-]+)?$/i, '') + '=s' + CFG.WEB_MAX_PX + formatFlag_(file.getMimeType());
       const res = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
-      if (res.getResponseCode() !== 200) { set('image_status', 'web copy failed (' + res.getResponseCode() + '), retry later'); continue; }
+      if (res.getResponseCode() !== 200) { set('status', 'web copy failed (' + res.getResponseCode() + '), retry later'); continue; }
       const blob = res.getBlob();
       const ext = { 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[blob.getContentType()] || 'jpg';
-      const base = String(uid).padStart(CFG.UID_DIGITS, '0') + '_web';
-      const old = webFolder.searchFiles('title contains "' + base + '"');      // replace an earlier copy, whatever its format
-      while (old.hasNext()) { const f = old.next(); if (f.getName().indexOf(base + '.') === 0) f.setTrashed(true); }
+      // named by uid and position, so it survives work ID changes: 0004-02_web.png
+      const base = String(uid).padStart(CFG.UID_DIGITS, '0') + '-' + String(+r[h.order] || i).padStart(2, '0') + '_web';
+      if (r[h.drive_web_id]) { try { DriveApp.getFileById(r[h.drive_web_id]).setTrashed(true); } catch (e) {} }
       const web = webFolder.createFile(blob.setName(base + '.' + ext));
       shareByLink_(web);
       set('drive_web_id', web.getId());
       set('image_web_url', 'https://lh3.googleusercontent.com/d/' + web.getId());
-      set('image_status', 'linked ' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm')
+      set('status', 'linked ' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm')
         + ' · web ' + ext.toUpperCase() + ' ' + Math.round(web.getSize() / 1024) + ' KB / original ' + Math.round(file.getSize() / 1024) + ' KB');
     } catch (err) {
-      set('image_status', 'error: ' + err.message);
+      set('status', 'error: ' + err.message);
     }
   }
   clearCache();
@@ -298,19 +339,29 @@ function formatFlag_(originalMime) {
   return { 'image/png': '-rp', 'image/webp': '-rw', 'image/gif': '-rg' }[originalMime] || '-rj';
 }
 
-/** Makes the web copies again for the rows you've selected (e.g. after changing WEB_FORMAT or WEB_MAX_PX). */
+/** Makes the web copies again for the selected rows: rows on the Images tab, or every image of the selected works. */
 function remakeWebCopies() {
-  const sh = SpreadsheetApp.getActiveSheet();
-  if (sh.getName() !== 'Works') { SpreadsheetApp.getActive().toast('Select rows on the Works tab first.', 'Archive'); return; }
-  const h = headerIndex_(sh), r = sh.getActiveRange();
-  const top = Math.max(2, r.getRow()), n = r.getLastRow() - top + 1;
-  if (n < 1) return;
-  sh.getRange(top, h.drive_web_id + 1, n, 1).clearContent();
+  const ss = SpreadsheetApp.getActive(), sh = ss.getActiveSheet(), r = sh.getActiveRange();
+  const im = ss.getSheetByName('Images'), ih = headerIndex_(im);
+  if (im.getLastRow() < 2) return;
+  const top = Math.max(2, r.getRow()), bottom = r.getLastRow();
+  let rows = [];
+  if (sh.getName() === 'Images') for (let i = top; i <= bottom; i++) rows.push(i);
+  else if (sh.getName() === 'Works') {
+    const wh = headerIndex_(sh);
+    const uids = sh.getRange(top, wh.uid + 1, bottom - top + 1, 1).getValues().map(x => +x[0]).filter(Boolean);
+    im.getRange(2, ih.uid + 1, im.getLastRow() - 1, 1).getValues().forEach((x, i) => { if (uids.indexOf(+x[0]) >= 0) rows.push(i + 2); });
+  } else { ss.toast('Select rows on the Works or Images tab first.', 'Archive'); return; }
+  rows.forEach(i => {
+    const cell = im.getRange(i, ih.drive_web_id + 1), old = cell.getValue();
+    if (old) { try { DriveApp.getFileById(old).setTrashed(true); } catch (e) {} }
+    cell.clearContent();
+  });
   syncImages();
-  SpreadsheetApp.getActive().toast('Web copies remade for ' + n + ' row(s).', 'Archive');
+  ss.toast('Web copies remade for ' + rows.length + ' image(s).', 'Archive');
 }
 
-function syncAll() { assignIds(); importNewFiles(); syncImages(); }
+function syncAll() { importNewFiles(); syncImages(); assignIds(); }
 
 function installTrigger() {
   ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'syncAll').forEach(t => ScriptApp.deleteTrigger(t));
@@ -390,6 +441,13 @@ function readTables_() {
 function buildPayload(t) {
   const s = v => (v === null || v === undefined) ? '' : String(v).trim();
   const thumb = id => id ? 'https://lh3.googleusercontent.com/d/' + id + '=w' + CFG.THUMB_PX : '';
+  const imgs = {};
+  (t.Images || []).filter(r => +r.uid && s(r.image_web_url))
+    .sort((a, b) => (+a.order || 0) - (+b.order || 0))
+    .forEach(r => (imgs[+r.uid] = imgs[+r.uid] || []).push({
+      web: s(r.image_web_url), full: s(r.image_full_url), thumb: thumb(s(r.drive_web_id)),
+      w: +r.image_w || 0, h: +r.image_h || 0, caption: s(r.caption)
+    }));
   const works = (t.Works || []).filter(r => r.publish === true || s(r.publish).toUpperCase() === 'TRUE').map(r => ({
     id: s(r.work_id), uid: +r.uid || 0, title: s(r.title), year: s(r.year), country: s(r.country),
     entity: s(r.entity_id), designer: s(r.designer_id), intent: s(r.intent),
@@ -397,10 +455,10 @@ function buildPayload(t) {
     types: s(r.types).split(',').map(x => x.trim()).filter(Boolean),
     movement: s(r.movement), designStyle: s(r.design_style), typeStyle: s(r.typography_style),
     dims: s(r.dimensions), credit: s(r.credit), source: s(r.source_url), notes: s(r.notes),
-    img: { web: s(r.image_web_url), full: s(r.image_full_url), thumb: thumb(s(r.drive_web_id)), w: +r.image_w || 0, h: +r.image_h || 0 }
+    images: (imgs[+r.uid] || [])
   })).filter(w => w.id && w.category && w.subcategory);
   return {
-    version: 3,
+    version: 4,
     updated: new Date().toISOString(),
     structure: t.Solutions || [],
     styles: t.Styles || {},

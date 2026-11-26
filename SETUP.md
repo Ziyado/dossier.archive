@@ -56,18 +56,29 @@ cat   sub   client uid   year
 3. Copy the URL that ends in `/exec`.
 4. Paste that URL into `const DATA_URL = "";` in `index.html`.
 
-## 3. Add images
+## 3. Add images (any number per work)
 
-There are two ways to connect a scan to its record:
+Images live on their own **Images** tab, one row per image:
 
-- Name the scan starting with its work ID, e.g. `PE-OPA-HBV-0004-1938 menu front.jpg`, and drop it into Originals.
-- Or drop in any file name. The next sync creates a draft row for it, with the file name already in `image_file`. Fill in the record, then tick **publish**.
+| Column | What it holds |
+|---|---|
+| uid | The work's permanent number. The script fills it in. |
+| work_id | The work the image belongs to, picked from a dropdown. It updates automatically if the work's ID changes. |
+| order | 1 is the main image; 2, 3 and so on follow on the entry page. |
+| image_file | The file's exact name in Originals. |
+| caption | Optional, e.g. Front, Back, Inside, Detail. |
+| grey columns | Filled by the script: the Drive IDs, the full and web links, the size in pixels and a status line. |
 
-For each image, the sync then:
+Ways to add images to a work:
+- **By name:** start the file name with the work ID and drop it into Originals, e.g. `PE-OPA-HBV-0004-1938 front.png` and `PE-OPA-HBV-0004-1938 back.png`. Each file becomes its own row on the Images tab, numbered 1, 2, 3 in the order they're found. Edit `order` afterwards if you want a different sequence.
+- **By hand:** add a row on Images, pick the `work_id`, type the file name into `image_file`, and set `order`.
+- **Image first:** a file with any other name gets a new draft work on Works, plus its own row on Images. Fill in the work, and add more images to it with either of the methods above.
 
-- shares the original as view-only, by link
-- saves a 1600 px JPEG copy into Web, named by uid (`0004_web.jpg`), so it survives ID changes
-- writes both links, the original's pixel size and the file sizes into the row
+Each image gets its own web copy, named by uid and position (e.g. `0004-02_web.png`), in the original's format. The `status` column on Works shows how many images each work has.
+
+On the site, the entry page shows image 1 first. Arrows and a row of thumbnails switch between images, and **Full resolution** always opens the image currently shown. In the drawers, papers for works with more than one image carry a small "3 images" label.
+
+To remake web copies, select rows on Images (or works on Works, which covers all their images) and run **Archive → Remake web copies for selected rows**.
 
 ## 4. Host the site
 
