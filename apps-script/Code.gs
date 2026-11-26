@@ -25,6 +25,9 @@ const CFG = {
   ORIGINALS_FOLDER_ID: '1QkSjkKvoqdWMH6tDBH9DpdkKFbdNuQp8',
   WEB_FOLDER_ID: '15yk25DcuLlHHCzliNBkYxDig8FbPDwHX',
   WEB_MAX_PX: 1600,
+  // Format of the web copy: 'same' keeps the original's format (PNG stays PNG, JPEG stays JPEG),
+  // or force one: 'webp' (smallest, keeps transparency), 'jpeg', 'png'.
+  WEB_FORMAT: 'same',
   THUMB_PX: 400,
   UID_DIGITS: 4,
   CACHE_SECONDS: 600,
@@ -54,6 +57,7 @@ function onOpen() {
     .addItem('Import new images as draft rows', 'importNewFiles')
     .addItem('Link images and make web copies', 'syncImages')
     .addItem('Run import + link now', 'syncAll')
+    .addItem('Remake web copies for selected rows', 'remakeWebCopies')
     .addSeparator()
     .addItem('Repair / extend dropdowns', 'setupDropdowns')
     .addItem('Turn on automatic sync + dropdown repair', 'installTrigger')
@@ -259,18 +263,20 @@ function syncImages() {
       set('image_full_url', 'https://drive.google.com/file/d/' + file.getId() + '/view');
       if (meta.imageMediaMetadata) { set('image_w', meta.imageMediaMetadata.width); set('image_h', meta.imageMediaMetadata.height); }
       if (!meta.thumbnailLink) { set('image_status', 'waiting for Drive to process the image, retry later'); continue; }
-      const url = meta.thumbnailLink.replace(/=s\d+(-[a-z0-9-]+)?$/i, '') + '=s' + CFG.WEB_MAX_PX;
+      const url = meta.thumbnailLink.replace(/=s\d+(-[a-z0-9-]+)?$/i, '') + '=s' + CFG.WEB_MAX_PX + formatFlag_(file.getMimeType());
       const res = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
       if (res.getResponseCode() !== 200) { set('image_status', 'web copy failed (' + res.getResponseCode() + '), retry later'); continue; }
-      const webName = String(uid).padStart(CFG.UID_DIGITS, '0') + '_web.jpg';
-      const old = webFolder.getFilesByName(webName);
-      while (old.hasNext()) old.next().setTrashed(true);
-      const web = webFolder.createFile(res.getBlob().setName(webName));
+      const blob = res.getBlob();
+      const ext = { 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[blob.getContentType()] || 'jpg';
+      const base = String(uid).padStart(CFG.UID_DIGITS, '0') + '_web';
+      const old = webFolder.searchFiles('title contains "' + base + '"');      // replace an earlier copy, whatever its format
+      while (old.hasNext()) { const f = old.next(); if (f.getName().indexOf(base + '.') === 0) f.setTrashed(true); }
+      const web = webFolder.createFile(blob.setName(base + '.' + ext));
       shareByLink_(web);
       set('drive_web_id', web.getId());
       set('image_web_url', 'https://lh3.googleusercontent.com/d/' + web.getId());
       set('image_status', 'linked ' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm')
-        + ' · web ' + Math.round(web.getSize() / 1024) + ' KB / original ' + Math.round(file.getSize() / 1024) + ' KB');
+        + ' · web ' + ext.toUpperCase() + ' ' + Math.round(web.getSize() / 1024) + ' KB / original ' + Math.round(file.getSize() / 1024) + ' KB');
     } catch (err) {
       set('image_status', 'error: ' + err.message);
     }
@@ -281,6 +287,27 @@ function syncImages() {
 /** Rows inserted or deleted in Works shift the per-row dropdown rules, so rebuild them. */
 function onStructureChange(e) {
   if (e && ['INSERT_ROW', 'REMOVE_ROW', 'INSERT_GRID', 'REMOVE_GRID'].indexOf(e.changeType) >= 0) setupDropdowns();
+}
+
+/** Google's image service picks the output format from a flag on the URL: -rp PNG, -rw WebP, -rj JPEG, -rg GIF. */
+function formatFlag_(originalMime) {
+  const f = CFG.WEB_FORMAT;
+  if (f === 'webp') return '-rw';
+  if (f === 'jpeg') return '-rj';
+  if (f === 'png') return '-rp';
+  return { 'image/png': '-rp', 'image/webp': '-rw', 'image/gif': '-rg' }[originalMime] || '-rj';
+}
+
+/** Makes the web copies again for the rows you've selected (e.g. after changing WEB_FORMAT or WEB_MAX_PX). */
+function remakeWebCopies() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  if (sh.getName() !== 'Works') { SpreadsheetApp.getActive().toast('Select rows on the Works tab first.', 'Archive'); return; }
+  const h = headerIndex_(sh), r = sh.getActiveRange();
+  const top = Math.max(2, r.getRow()), n = r.getLastRow() - top + 1;
+  if (n < 1) return;
+  sh.getRange(top, h.drive_web_id + 1, n, 1).clearContent();
+  syncImages();
+  SpreadsheetApp.getActive().toast('Web copies remade for ' + n + ' row(s).', 'Archive');
 }
 
 function syncAll() { assignIds(); importNewFiles(); syncImages(); }
