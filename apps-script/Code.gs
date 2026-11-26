@@ -235,20 +235,30 @@ function countImages_() {
   return out;
 }
 
-/** Keeps Images.work_id in step with Works, and fills uid when only a work ID was typed. */
+/** Keeps the Images tab in step with Works.
+ *  - a work_id you type or pick wins: the row's uid is set to that work's uid
+ *  - if a work's ID changed (so the old ID no longer exists), the uid brings the new ID back
+ *  - a work_id is never blanked out */
 function syncImageIds_() {
   const ss = SpreadsheetApp.getActive(), im = ss.getSheetByName('Images'), wk = ss.getSheetByName('Works');
   if (!im || im.getLastRow() < 2) return;
   const wh = headerIndex_(wk), ih = headerIndex_(im);
   const byUid = {}, byId = {};
   wk.getRange(2, 1, Math.max(wk.getLastRow() - 1, 1), wk.getLastColumn()).getValues().forEach(r => {
-    if (+r[wh.uid]) { byUid[+r[wh.uid]] = String(r[wh.work_id]); if (r[wh.work_id]) byId[String(r[wh.work_id]).toUpperCase()] = +r[wh.uid]; }
+    const u = +r[wh.uid], id = String(r[wh.work_id]).trim();
+    if (u) { byUid[u] = id; if (id) byId[id.toUpperCase()] = u; }
   });
   const v = im.getRange(2, 1, im.getLastRow() - 1, im.getLastColumn()).getValues();
   v.forEach((r, i) => {
-    let uid = +r[ih.uid];
-    if (!uid && r[ih.work_id]) { uid = byId[String(r[ih.work_id]).trim().toUpperCase()] || 0; if (uid) im.getRange(i + 2, ih.uid + 1).setValue(uid); }
-    if (uid && byUid[uid] !== undefined && byUid[uid] !== String(r[ih.work_id])) im.getRange(i + 2, ih.work_id + 1).setValue(byUid[uid]);
+    const row = i + 2, uid = +r[ih.uid], typed = String(r[ih.work_id]).trim();
+    const typedUid = typed ? byId[typed.toUpperCase()] : 0;
+    if (typedUid) {
+      if (typedUid !== uid) im.getRange(row, ih.uid + 1).setValue(typedUid);
+    } else if (uid && byUid[uid]) {
+      if (byUid[uid] !== typed) im.getRange(row, ih.work_id + 1).setValue(byUid[uid]);
+    } else if (typed) {
+      im.getRange(row, ih.status + 1).setValue('work_id "' + typed + '" not found in Works');
+    }
   });
 }
 
