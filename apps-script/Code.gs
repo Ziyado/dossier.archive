@@ -121,31 +121,54 @@ function setupDropdowns(upTo) {
   const ss = SpreadsheetApp.getActive();
   const works = ss.getSheetByName('Works'), lists = ss.getSheetByName('_lists');
   const h = headerIndex_(works);
-  const last = Math.min(works.getMaxRows(), Math.max(upTo || 0, works.getLastRow() + CFG.DROPDOWN_ROWS_AHEAD));
+  // rows really in use (the publish checkboxes fill every row, so getLastRow() can't be trusted)
+  const last = Math.max(upTo || 0, lastWorkRow_(works, h) + CFG.DROPDOWN_ROWS_AHEAD);
   if (works.getMaxRows() < last) works.insertRowsAfter(works.getMaxRows(), last - works.getMaxRows());
-  if (lists.getMaxRows() < last) lists.insertRowsAfter(lists.getMaxRows(), last - lists.getMaxRows());
-  const n = last - 1;
-  // helper formulas look up their own row number, so deleting or inserting Works rows can't break them
+  if (lists.getMaxRows() < works.getMaxRows()) lists.insertRowsAfter(lists.getMaxRows(), works.getMaxRows() - lists.getMaxRows());
+  const n = last - 1, all = lists.getMaxRows() - 1;
+
+  // helper lists: every _lists row looks up the same row number in Works
   const F = {
     subcategory: '=LET(v,INDEX(Works!$H:$H,ROW()),IF(v="","",IFERROR(TRANSPOSE(UNIQUE(FILTER(Solutions!$C$2:$C,Solutions!$A$2:$A=v))),"")))',
     design_style: '=LET(v,INDEX(Works!$M:$M,ROW()),IF(v="","",IFERROR(TRANSPOSE(TOCOL(INDEX(Styles!$A$2:$Z,0,MATCH(v,Styles!$A$1:$Z$1,0)),1)),"")))'
   };
-  lists.getRange(2, 1, lists.getMaxRows() - 1, 100).clearContent();
-  Object.keys(LISTS).forEach(k => lists.getRange(2, LISTS[k].col, n, 1).setFormula(F[k]));
+  lists.getRange(2, 1, all, 100).clearContent();
+  Object.keys(LISTS).forEach(k => lists.getRange(2, LISTS[k].col, all, 1).setFormula(F[k]));
+  lists.getRange(2, 101, all, 3).clearContent();
   lists.getRange('CW2').setFormula('=UNIQUE(FILTER(Solutions!$A$2:$A,Solutions!$A$2:$A<>""))');
   lists.getRange('CX2').setFormula('=IFERROR(TOCOL(INDEX(Styles!$A$2:$Z,0,MATCH("Typography",Styles!$A$1:$Z$1,0)),1),"")');
   lists.getRange('CY2').setFormula('=TOCOL(FILTER(Styles!$A$1:$Z$1,Styles!$A$1:$Z$1<>"",LEFT(Styles!$A$1:$Z$1,10)<>"Typography"),1)');
-  // one rule per row
+
+  // per-row rules: subcategory follows the row's category, design_style follows its movement
   Object.keys(LISTS).forEach(k => {
     const spec = LISTS[k], rules = [];
     for (let r = 2; r <= last; r++) {
       rules.push([SpreadsheetApp.newDataValidation()
         .requireValueInRange(lists.getRange(r, spec.col, 1, spec.width), true)
-        .setAllowInvalid(false)
-        .build()]);
+        .setAllowInvalid(false).build()]);
     }
     works.getRange(2, h[k] + 1, n, 1).setDataValidations(rules);
   });
+
+  // whole-column rules (the types column is left alone: its multi-select setting can only be made by hand)
+  const col = (k, range, strict) => works.getRange(2, h[k] + 1, works.getMaxRows() - 1, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInRange(range, true).setAllowInvalid(!strict).build());
+  col('category', lists.getRange('CW2:CW200'), true);
+  col('movement', lists.getRange('CY2:CY50'), true);
+  col('typography_style', lists.getRange('CX2:CX500'), true);
+  col('entity_id', ss.getSheetByName('Entities').getRange('A2:A500'), true);
+  col('designer_id', ss.getSheetByName('Designers').getRange('A2:A500'), true);
+  ss.toast('Dropdowns ready for rows 2–' + last + '.', 'Archive', 5);
+}
+
+/** Last Works row that holds an actual record. */
+function lastWorkRow_(sh, h) {
+  const n = sh.getMaxRows() - 1;
+  if (n < 1) return 1;
+  const v = sh.getRange(2, 1, n, sh.getLastColumn()).getValues();
+  const keys = ['work_id', 'title', 'year', 'entity_id', 'category', 'subcategory'].map(k => h[k]);
+  for (let i = v.length - 1; i >= 0; i--) if (keys.some(k => v[i][k] !== '' && v[i][k] !== null)) return i + 2;
+  return 1;
 }
 
 /* ---------------- IDs ---------------- */
@@ -270,7 +293,7 @@ function importNewFiles() {
     newImages.push(ir);
   }
   if (newWorks.length) {
-    const start = wk.getLastRow() + 1;
+    const start = lastWorkRow_(wk, wh) + 1;                   // right under the last record, not after the empty checkbox rows
     wk.getRange(start, 1, newWorks.length, newWorks[0].length).setValues(newWorks);
     if (!wk.getRange(start + newWorks.length - 1, wh.subcategory + 1).getDataValidation()) setupDropdowns();
   }
