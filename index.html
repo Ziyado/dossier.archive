@@ -71,6 +71,38 @@ header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom
 .dr:hover .pull,.dr:focus-visible .pull{transform:translateY(12px)}
 .dr:hover .peek,.dr:focus-visible .peek{transform:translateY(-30px)}
 .dr:focus-visible .front{outline:3px solid #1f3fd1;outline-offset:3px}
+.home{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:28px;align-items:start;padding-bottom:40px}
+.homemain .cab{margin-top:0}
+.filters{position:sticky;top:16px;background:var(--panel);border:1.5px solid var(--line);border-radius:6px;padding:16px;max-height:calc(100vh - 32px);overflow:auto}
+.filters h2{font:400 15px/1.3 var(--f-struct);letter-spacing:.07em;text-transform:uppercase;margin:0 0 12px}
+.ftabs{display:grid;gap:6px}
+.ftab{display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 14px;border:1.5px solid var(--line);border-left:10px solid var(--fc);border-radius:3px;background:var(--bg);cursor:pointer;font:400 14px/1.2 var(--f-struct);letter-spacing:.05em;text-transform:uppercase;text-align:left}
+.ftab:hover,.ftab:focus-visible{background:var(--fc);color:#121212;outline:none}
+.ftab.on{background:var(--fc);color:#121212}
+.ftab em{font-style:normal;background:#121212;color:#fff;border-radius:10px;padding:2px 8px;font:500 11px var(--f-struct)}
+.fnotes{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:14px 10px;padding:18px 2px 6px}
+.fnote{position:relative;display:flex;flex-direction:column;gap:3px;text-align:left;min-height:84px;padding:14px 10px 10px;border:0;background:var(--fc);color:#121212;cursor:pointer;box-shadow:0 8px 14px -8px rgba(0,0,0,.55);transform:rotate(var(--r));transition:transform .2s,box-shadow .2s}
+.fnote::before{content:"";position:absolute;left:50%;top:-7px;width:44px;height:14px;margin-left:-22px;background:rgba(255,255,255,.55);transform:rotate(-3deg)}
+.fnote:hover,.fnote:focus-visible{transform:rotate(0) translateY(-3px);outline:none}
+.fnote:focus-visible{box-shadow:0 0 0 3px #121212}
+.fnote b{font:400 14px/1.15 var(--f-struct)}
+.fnote span{font:300 11px/1.3 var(--f-edit)}
+.fnote em{margin-top:auto;font:300 10px/1.3 var(--f-edit);letter-spacing:.05em;text-transform:uppercase;font-style:normal;opacity:.75}
+.fnote.on{box-shadow:0 0 0 2.5px #121212,0 12px 18px -8px rgba(0,0,0,.6);transform:rotate(0) scale(1.03)}
+.fnote.on::after{content:"✓";position:absolute;right:6px;top:4px;font:500 14px var(--f-struct)}
+.fhint,.fempty{font:300 14px/1.4 var(--f-edit);color:var(--soft);margin:14px 0 0}
+.factive{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-top:1px solid color-mix(in srgb,var(--line) 25%,transparent);margin-top:14px;padding-top:12px}
+.factive>span{font:300 10px var(--f-edit);letter-spacing:.08em;text-transform:uppercase;color:var(--soft);width:100%}
+.fclear{min-height:32px;padding:0 12px;border:1.5px solid var(--line);border-radius:16px;background:transparent;cursor:pointer;font:300 11px var(--f-edit);letter-spacing:.06em;text-transform:uppercase}
+.fclear:hover{background:var(--ink);color:var(--bg)}
+.fbar2{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);border:1.5px solid var(--line);border-radius:6px;padding:10px 14px;margin:6px 0 14px;font:300 14px/1.4 var(--f-edit)}
+.fbar2 span{margin-right:auto}
+.dr.dim{opacity:.4}
+.matches{margin-top:8px}
+.matches h2{font:400 15px/1.3 var(--f-struct);letter-spacing:.07em;text-transform:uppercase;margin:0 0 12px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px}
+.mgrid .paper{position:relative;left:auto;top:auto;width:auto;transform:rotate(var(--r,0deg))}
+@media(max-width:900px){.home{grid-template-columns:minmax(0,1fr)}.filters{position:relative;top:0;max-height:none}.ftabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .gindex{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;padding:16px 0 44px}
 .gindex section{background:var(--panel);border:1.5px solid var(--line);border-radius:4px;padding:16px 18px 10px;border-top:5px solid var(--c)}
 .gindex h2{font:400 15px/1.3 var(--f-struct);letter-spacing:.07em;text-transform:uppercase;margin:0 0 10px}
@@ -317,21 +349,62 @@ const nImg=w=>Math.max(1,w.images.length);
 document.addEventListener("error",e=>{const t=e.target;if(t.tagName==="IMG"&&t.dataset.w&&!t.dataset.fell){t.dataset.fell=1;const w=G.W[t.dataset.w];if(w)t.src=specimen(w,+(t.dataset.i||0))}},true);
 
 /* ---------- views ---------- */
+/* ---------- filters: OR inside a group, AND across groups; remembered in this browser ---------- */
+const FG=[
+  {k:"designer",label:"Designers",col:"#f2d54a",of:w=>w.designers},
+  {k:"entity",label:"Clients",col:"#ef9ab8",of:w=>[w.entity]},
+  {k:"philosophy",label:"Design philosophy",col:"#9fd8b6",of:w=>[w.movement,w.designStyle]},
+  {k:"typo",label:"Typography",col:"#bcccff",of:w=>[w.typeStyle]}];
+let F={},openG="";
+try{const o=JSON.parse(localStorage.getItem("dossier-filters")||"{}");FG.forEach(g=>F[g.k]=new Set(o[g.k]||[]))}catch(e){FG.forEach(g=>F[g.k]=new Set())}
+const saveF=()=>{try{localStorage.setItem("dossier-filters",JSON.stringify(Object.fromEntries(FG.map(g=>[g.k,[...F[g.k]]]))))}catch(e){}};
+const nF=()=>FG.reduce((n,g)=>n+F[g.k].size,0);
+const pass=w=>FG.every(g=>!F[g.k].size||g.of(w).some(v=>F[g.k].has(v)));
+const vis=()=>G.order.filter(pass);
+function fOptions(g){
+  const count=v=>G.order.filter(w=>g.of(w).includes(v)).length;
+  if(g.k==="designer")return Object.values(G.D).map(d=>({v:d.id,t:d.name,s:[d.kind,d.years].filter(Boolean).join(" · "),n:count(d.id)}));
+  if(g.k==="entity")return Object.values(G.E).map(e=>({v:e.id,t:e.name,s:e.type||"",n:count(e.id)}));
+  if(g.k==="philosophy"){const out=[];(Object.keys(G.styles).length?Object.keys(G.styles):MOVES).forEach(m=>{out.push({v:m,t:m.replace(" Design",""),s:"Movement",n:count(m)});(G.styles[m]||[]).forEach(st=>out.push({v:st,t:st,s:m.replace(" Design",""),n:count(st)}))});return out}
+  const notes=Object.fromEntries((G.p.typography||[]).map(t=>[t.name,t.note]));
+  const names=[...new Set([...(G.p.typography||[]).map(t=>t.name),...G.order.map(w=>w.typeStyle).filter(Boolean)])];
+  return names.map(v=>({v,t:v,s:notes[v]||"",n:count(v)}));
+}
+function filterPanel(){
+  const g=FG.find(x=>x.k===openG);
+  const opts=g?fOptions(g).filter(o=>o.n||F[g.k].has(o.v)):[];
+  const active=FG.flatMap(x=>[...F[x.k]].map(v=>({g:x,v,t:(fOptions(x).find(o=>o.v===v)||{t:v}).t})));
+  return `<aside class="filters" aria-label="Filter the cabinet">
+   <h2>Filter the cabinet</h2>
+   <div class="ftabs" role="tablist">${FG.map(x=>`<button type="button" role="tab" class="ftab${openG===x.k?" on":""}" data-fg="${x.k}" aria-selected="${openG===x.k}" style="--fc:${x.col}"><span>${esc(x.label)}</span>${F[x.k].size?`<em>${F[x.k].size}</em>`:""}</button>`).join("")}</div>
+   ${g?`<div class="fnotes" style="--fc:${g.col}">${opts.length?opts.map((o,k)=>`<button type="button" class="fnote${F[g.k].has(o.v)?" on":""}" data-fv="${esc(o.v)}" aria-pressed="${F[g.k].has(o.v)}" style="--r:${((hash(o.v)%7)-3)*.7}deg"><b>${esc(o.t)}</b>${o.s?`<span>${esc(o.s)}</span>`:""}<em>${o.n} work${o.n===1?"":"s"}</em></button>`).join(""):`<p class="fempty">Nothing to filter by yet.</p>`}</div>`:`<p class="fhint">Choose a tab, then pin the notes you want to see.</p>`}
+   ${active.length?`<div class="factive"><span>Pinned</span>${active.map(a=>`<button type="button" class="chip on" data-fx="${a.g.k}" data-fv="${esc(a.v)}" style="background:${a.g.col};color:#121212;border-color:#121212">${esc(a.t)} ×</button>`).join("")}<button type="button" class="fclear">Clear all</button></div>`:""}
+  </aside>`;
+}
+function wireFilters(rerender){
+  view.querySelectorAll(".ftab").forEach(b=>b.onclick=()=>{openG=openG===b.dataset.fg?"":b.dataset.fg;rerender()});
+  view.querySelectorAll(".fnote").forEach(b=>b.onclick=()=>{const set=F[openG],v=b.dataset.fv;set.has(v)?set.delete(v):set.add(v);saveF();rerender()});
+  view.querySelectorAll(".factive [data-fx]").forEach(b=>b.onclick=()=>{F[b.dataset.fx].delete(b.dataset.fv);saveF();rerender()});
+  const cl=view.querySelector(".fclear");if(cl)cl.onclick=()=>{FG.forEach(x=>F[x.k].clear());saveF();rerender()};
+}
+function filterBar(shown,total){
+  if(!nF())return"";
+  const names=FG.flatMap(x=>[...F[x.k]].map(v=>(fOptions(x).find(o=>o.v===v)||{t:v}).t));
+  return `<div class="fbar2"><span>Filtered: showing ${shown} of ${total} works · ${esc(names.join(", "))}</span><button type="button" class="fclear">Clear filters</button><a href="#cabinet" class="chip">Change filters</a></div>`;
+}
 function cabinet(){
-  const all=G.order,ds=Object.values(G.D),es=Object.values(G.E);
-  const cnt=(f)=>all.filter(f).length;
+  const all=G.order,shown=vis(),ds=Object.values(G.D),es=Object.values(G.E),on=nF()>0;
+  const y=window.scrollY;
   view.innerHTML=`<div class="head"><div><h1>Designed ephemera, filed by what it was made to do</h1><p>Each drawer holds one kind of solution, in its own colour. Inside, guide cards in shades of that colour mark the subcategories; every paper is one work, linked to its client, designer and design philosophy.</p></div>
-  <div class="stats"><div><b>${all.length}</b>works</div><div><b>${ds.length}</b>designers</div><div><b>${es.length}</b>clients</div><div><b>${esc(years(all)||"–")}</b>span</div></div></div>
-  <div class="cab">${G.cats.map(c=>{const ws=all.filter(w=>w.category===c.name);return `<a class="dr" href="#drawer-${c.slug}" aria-label="${esc(c.name)}, ${ws.length} works">
+  <div class="stats"><div><b>${on?shown.length+"/"+all.length:all.length}</b>works</div><div><b>${ds.length}</b>designers</div><div><b>${es.length}</b>clients</div><div><b>${esc(years(shown)||"–")}</b>span</div></div></div>
+  <div class="home">${filterPanel()}
+  <div class="homemain"><div class="cab">${G.cats.map(c=>{const tot=all.filter(w=>w.category===c.name).length,ws=shown.filter(w=>w.category===c.name);return `<a class="dr${on&&!ws.length?" dim":""}" href="#drawer-${c.slug}" aria-label="${esc(c.name)}, ${ws.length} works">
     <span class="peek">${ws.slice(0,6).map((w,i)=>`<i style="background:${w.col[0]};left:${(i%3)*35}%;top:${i*4}px"></i>`).join("")}</span>
-    <span class="front"><span class="holder"><span class="card" style="--c:${c.col[0]};--t:${c.col[1]}">${esc(c.name)}</span></span><small>${ws.length} works · ${G.subs[c.name].length} sections${ws.length?" · "+esc(years(ws)):""}</small></span>
+    <span class="front"><span class="holder"><span class="card" style="--c:${c.col[0]};--t:${c.col[1]}">${esc(c.name)}</span></span><small>${on?`${ws.length} of ${tot}`:tot} works · ${G.subs[c.name].length} sections${ws.length?" · "+esc(years(ws)):""}</small></span>
     <span class="pull"></span></a>`}).join("")}</div><div class="plinth"></div>
-  <div class="gindex">
-   <section style="--c:#f2d54a"><h2>Designers</h2>${ds.map(d=>`<a href="#designer-${slug(d.id)}"><span>${esc(d.name)}</span><small>${esc(d.kind)} · ${esc(d.years)} · ${cnt(w=>w.designers.includes(d.id))}</small></a>`).join("")||"<p>No designers yet.</p>"}</section>
-   <section style="--c:#ef9ab8"><h2>Clients</h2>${es.map(e=>`<a href="#entity-${slug(e.id)}"><span>${esc(e.name)}</span><small>${esc((e.type||"").replace(" Sector",""))} · ${cnt(w=>w.entity===e.id)}</small></a>`).join("")||"<p>No clients yet.</p>"}</section>
-   <section style="--c:#217a4b"><h2>Design philosophy</h2>${(Object.keys(G.styles).length?Object.keys(G.styles):MOVES).map(m=>{const st=(G.styles[m]||[]).map(v=>[v,cnt(w=>w.designStyle===v)]).filter(x=>x[1]);return `<a href="#movement-${slug(m)}"><span>${esc(m.replace(" Design",""))}</span><small>${cnt(w=>w.movement===m)}</small></a>${st.length?`<div class="chips">${st.map(([v,n])=>`<a class="chip" href="#style-${slug(v)}">${esc(v)} ${n}</a>`).join("")}</div>`:""}`}).join("")}
-    <h2 style="font-size:20px;margin-top:12px">Typography</h2><div class="chips">${facet("typeStyle").map(([v,n])=>`<a class="chip" href="#typo-${slug(v)}" title="${esc(((G.p.typography||[]).find(t=>t.name===v)||{}).note||"")}">${esc(v)} ${n}</a>`).join("")}</div></section>
-  </div>`;
+  ${on?`<section class="matches"><h2>${shown.length} matching work${shown.length===1?"":"s"}</h2>${shown.length?`<div class="mgrid">${shown.map(w=>`<a class="paper" href="#work-${w.key}" style="--c:${w.col[0]}">${nImg(w)>1?`<span class="count">${nImg(w)} images</span>`:""}<img loading="lazy" alt="" data-w="${w.key}" src="${esc(imgThumb(w))}"><em>${esc(w.id)}</em><b>${esc(w.title)}</b></a>`).join("")}</div>`:`<p>No work matches all the pinned notes. Unpin one, or clear all.</p>`}</section>`:""}
+  </div></div>`;
+  wireFilters(()=>{cabinet();scrollTo(0,y)});
 }
 function facet(k){const m={};G.order.forEach(w=>{if(w[k])m[w[k]]=(m[w[k]]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])}
 
@@ -377,13 +450,15 @@ function stack(groups,label){
 function drawer(s){
   const ci=G.cats.findIndex(c=>c.slug===s),c=G.cats[ci];if(!c)return cabinet();
   const prev=G.cats[(ci+G.cats.length-1)%G.cats.length],next=G.cats[(ci+1)%G.cats.length];
-  const ws=G.order.filter(w=>w.category===c.name);
+  const tot=G.order.filter(w=>w.category===c.name).length,ws=vis().filter(w=>w.category===c.name);
   const groups=G.subs[c.name].map(sub=>({name:sub,types:G.types[sub]||[],works:ws.filter(w=>w.subcategory===sub)}));
   view.innerHTML=`<div class="head"><div><div class="crumbs"><a href="#cabinet">Cabinet</a> / Drawer</div><h1>${esc(c.name)}</h1><p>${ws.length} works in ${groups.length} sections. Hover a section, or tap it, to spread out its papers. Click a paper to open it.</p></div>
   <div class="row" style="display:flex;gap:8px"><a class="btn" href="#drawer-${prev.slug}" title="${esc(prev.name)}">← Previous drawer</a><a class="btn" href="#drawer-${next.slug}" title="${esc(next.name)}">Next drawer →</a></div></div>
   <div class="chips">${groups.map(g=>`<a class="chip${g.works.length?"":" off"}" href="#drawer-${c.slug}" data-g="g-${slug(g.name)}">${esc(g.name)} ${g.works.length}</a>`).join("")}</div>
+  ${filterBar(ws.length,tot)}
   ${stack(groups,[c.name,c.col])}`;
   wireGuides();
+  const fc=view.querySelector(".fclear");if(fc)fc.onclick=()=>{FG.forEach(x=>F[x.k].clear());saveF();drawer(s)};
   view.querySelectorAll("[data-g]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();const t=document.getElementById(a.dataset.g);if(t){t.scrollIntoView({behavior:"smooth",block:"center"});t.focus({preventScroll:true})}}));
 }
 function nodePage(kind,key){
