@@ -15,8 +15,8 @@
  *              plus a "Typography" column (with optional descriptions in the column to its right)
  *   _lists     hidden helper that feeds the per-row dropdowns (subcategory, design_style). Don't edit.
  *
- * Works › types has ONE whole-column rule listing every type, with "Allow multiple selections" ticked in the
- * Data validation panel. The script removes any type that doesn't belong to the row's subcategory.
+ * Works › types and Works › designer_id each have ONE whole-column rule with "Allow multiple selections"
+ * ticked in the Data validation panel (several values, comma-separated). The script removes any type that doesn't belong to the row's subcategory.
  *
  * Work IDs are built automatically:
  *   CATEGORY - SUBCATEGORY - ENTITY - UNIQUE NUMBER - YEAR      e.g.  PE-CUR-BTR-0001-1931
@@ -150,14 +150,14 @@ function setupDropdowns(upTo) {
     works.getRange(2, h[k] + 1, n, 1).setDataValidations(rules);
   });
 
-  // whole-column rules (the types column is left alone: its multi-select setting can only be made by hand)
+  // whole-column rules. types and designer_id are left alone: their "Allow multiple selections" setting
+  // can only be made by hand in the Data validation panel, and rewriting the rule here would remove it.
   const col = (k, range, strict) => works.getRange(2, h[k] + 1, works.getMaxRows() - 1, 1).setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInRange(range, true).setAllowInvalid(!strict).build());
   col('category', lists.getRange('CW2:CW200'), true);
   col('movement', lists.getRange('CY2:CY50'), true);
   col('typography_style', lists.getRange('CX2:CX500'), true);
   col('entity_id', ss.getSheetByName('Entities').getRange('A2:A500'), true);
-  col('designer_id', ss.getSheetByName('Designers').getRange('A2:A500'), true);
   ss.toast('Dropdowns ready for rows 2–' + last + '.', 'Archive', 5);
 }
 
@@ -512,7 +512,8 @@ function buildPayload(t) {
     }));
   const works = (t.Works || []).filter(r => r.publish === true || s(r.publish).toUpperCase() === 'TRUE').map(r => ({
     id: s(r.work_id), uid: +r.uid || 0, title: s(r.title), year: s(r.year), country: s(r.country),
-    entity: s(r.entity_id), designer: s(r.designer_id), intent: s(r.intent),
+    entity: s(r.entity_id), intent: s(r.intent),
+    designers: s(r.designer_id).split(',').map(x => x.trim()).filter(Boolean),
     category: s(r.category), subcategory: s(r.subcategory),
     types: s(r.types).split(',').map(x => x.trim()).filter(Boolean),
     movement: s(r.movement), designStyle: s(r.design_style), typeStyle: s(r.typography_style),
@@ -520,7 +521,7 @@ function buildPayload(t) {
     images: (imgs[+r.uid] || [])
   })).filter(w => w.id && w.category && w.subcategory);
   return {
-    version: 4,
+    version: 5,
     updated: new Date().toISOString(),
     structure: t.Solutions || [],
     styles: t.Styles || {},

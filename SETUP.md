@@ -19,11 +19,12 @@ Already done in your Google Drive, in the folder **Design Archive**:
 | category | all categories | Solutions |
 | subcategory | only the subcategories of that row's category | Solutions |
 | types | every type, as one rule for the whole column with multi-select; the script removes types that don't belong to the row's subcategory | Solutions, column E |
+| designer_id | every designer, as one rule for the whole column with multi-select (e.g. `D01, D03`) | Designers |
 | movement | the Styles column headers, except Typography | Styles, row 1 |
 | design_style | only the styles under that row's movement | Styles |
 | typography_style | the entries in the **Typography** column | Styles |
 
-- **Turn on multi-select for types (one time).** Select J2:J1025, choose Data → Data validation, click the rule, open Advanced options, tick **Allow multiple selections**, then click Done. Column J has a single rule for the whole column, so this setting stays put.
+- **Turn on multi-select for types and designers (one time each).** Select J2:J1045 (types), and then K2:K1045 (designer_id), choose Data → Data validation, click the rule, open Advanced options, tick **Allow multiple selections**, then click Done. Column J has a single rule for the whole column, so this setting stays put.
 - **Types that don't fit.** If you pick a type that doesn't belong to the row's subcategory, the script removes it and shows a short message.
 - **Leave columns I and N alone in the Data validation panel.** Subcategory and design_style have one rule per row so that their lists can depend on the category and movement. Editing them there merges the rules into one. If that happens, run **Archive → Repair / extend dropdowns**. That repair also runs by itself when rows are inserted or deleted, and it never touches column J.
 - **Row coverage.** Rows 2–51 have the per-row lists now. The script keeps 100 rows ready past your last entry.
