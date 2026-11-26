@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Ephemera Cabinet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE  occasion: a design archive you browse with your hands
+   IDEA   a steel card cabinet: one drawer per Solution category, black guide cards per subcategory, folders per work
+   PICTURE the cabinet, the open drawer of staggered tabs, and each work pinned to a board beside its typed record
+   COLOUR warm paper-grey ground, black line ink, folders in cobalt, vermilion, green, plum, yellow, pink
+   TYPE   Instrument Serif for labels and titles, Newsreader for records, Plex Mono for typed fields
+   LAYOUT title row, cabinet full width, graph index under it; entry = image left, paper and notes right; stacks on phones */
+:root{color-scheme:light dark;--bg:light-dark(#e8e6df,#151514);--ink:light-dark(#121212,#ece9e1);--soft:light-dark(#5d5a53,#a8a49b);--panel:light-dark(#f3f1eb,#1f1e1c);--well:light-dark(#d9d6cd,#0e0e0d);--line:light-dark(#121212,#d9d5cb)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans",system-ui,sans-serif;overflow-x:clip}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 max(4vw,16px)}
+header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1.5px solid var(--line);flex-wrap:wrap}
+.brand{font:400 24px/1 "Instrument Serif",serif;text-decoration:none;margin-right:auto}
+.brand span{display:inline-block;background:#f2d54a;color:#121212;font:500 13px/1 "IBM Plex Mono",monospace;padding:5px 7px;border-radius:4px;margin-left:8px;vertical-align:3px}
+.search{position:relative;flex:0 1 340px}
+.search input{width:100%;height:44px;border:1.5px solid var(--line);border-radius:22px;background:var(--panel);color:var(--ink);padding:0 16px 0 40px;font:16px "IBM Plex Sans",sans-serif}
+.search input:focus{outline:3px solid #1f3fd1;outline-offset:1px}
+.search svg{position:absolute;left:14px;top:13px;width:18px;height:18px}
+#res{position:absolute;z-index:150;top:50px;left:0;right:0;list-style:none;margin:0;padding:6px;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.18);max-height:70vh;overflow:auto}
+#res:empty{display:none}
+#res a{display:grid;grid-template-columns:auto 1fr;gap:0 10px;padding:8px 10px;border-radius:8px;text-decoration:none}
+#res a:hover,#res a:focus{background:var(--well);outline:none}
+#res b{grid-row:span 2;min-width:58px;font-size:11px!important;height:36px;border-radius:6px;display:grid;place-items:center;font:500 12px "IBM Plex Mono",monospace;padding:0 6px}
+#res small{color:var(--soft);font-size:13px}
+#res .none{padding:10px;color:var(--soft);font-size:14px}
+.head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;padding:28px 0 18px}
+.head h1{font:400 clamp(36px,5vw,52px)/1.05 "Instrument Serif",serif;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.head p{margin:6px 0 0;color:var(--soft);max-width:60ch}
+.crumbs{font-size:14px;color:var(--soft);margin-bottom:8px}
+.crumbs a{text-decoration:none;border-bottom:1px solid currentColor}
+.stats{display:flex;gap:26px;font-size:14px;color:var(--soft);flex-wrap:wrap}
+.stats b{display:block;font:400 34px/1 "Instrument Serif",serif;color:var(--ink)}
+.btn{min-height:44px;padding:0 16px;border:1.5px solid var(--line);border-radius:22px;background:var(--panel);cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:15px;white-space:nowrap}
+.btn:hover{background:var(--ink);color:var(--bg)}
+.btn:focus-visible{outline:3px solid #1f3fd1;outline-offset:2px}
+.btn[aria-disabled=true]{opacity:.45;pointer-events:none}
+/* cabinet */
+.cab{position:relative;margin:24px auto 0;max-width:900px;border:1.5px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;background:var(--panel);padding:46px clamp(12px,2.6vw,28px) 28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,2.4vw,26px) clamp(12px,2vw,22px)}
+.cab::before{content:"";position:absolute;left:-1.5px;right:-1.5px;top:12px;height:14px;border-block:1.5px solid var(--line)}
+.plinth{max-width:930px;margin:0 auto 18px;height:26px;border:1.5px solid var(--line);background:var(--well);position:relative}
+.plinth::before,.plinth::after{content:"";position:absolute;bottom:-12px;width:34px;height:12px;border:1.5px solid var(--line);border-top:0;background:var(--panel)}
+.plinth::before{left:30px}
+.plinth::after{right:30px}
+.dr{position:relative;display:block;aspect-ratio:1.7;text-decoration:none;outline:none;border-radius:4px;background:var(--well);box-shadow:inset 0 0 0 1.5px var(--line)}
+.peek{position:absolute;left:6%;right:6%;top:6px;height:40px;z-index:1;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.peek i{position:absolute;height:16px;width:30%;clip-path:polygon(0 100%,8% 0,92% 0,100% 100%)}
+.front{position:absolute;inset:0;z-index:2;border:1.5px solid var(--line);border-radius:4px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px 12px 40px;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
+.holder{border:1.5px solid var(--line);border-radius:3px;padding:3px;background:var(--well);width:min(86%,300px)}
+.card{display:block;background:var(--c);color:var(--t);padding:8px 12px;font:400 clamp(17px,2.2vw,22px)/1.1 "Instrument Serif",serif;text-align:center;text-wrap:balance}
+.front small{font-size:13px;color:var(--soft);text-align:center}
+.pull{position:absolute;z-index:3;bottom:12px;left:32%;width:36%;height:16px;border:1.5px solid var(--line);border-radius:0 0 12px 12px;border-top-width:4px;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.dr:hover .front,.dr:focus-visible .front{transform:translateY(12px) scale(1.03);box-shadow:0 18px 26px -10px rgba(0,0,0,.35)}
+.dr:hover .pull,.dr:focus-visible .pull{transform:translateY(12px)}
+.dr:hover .peek,.dr:focus-visible .peek{transform:translateY(-30px)}
+.dr:focus-visible .front{outline:3px solid #1f3fd1;outline-offset:3px}
+.gindex{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;padding:16px 0 44px}
+.gindex section{background:var(--panel);border:1.5px solid var(--line);border-radius:4px;padding:16px 18px 10px;border-top:5px solid var(--c)}
+.gindex h2{font:400 26px/1.1 "Instrument Serif",serif;margin:0 0 8px}
+.gindex a{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 20%,transparent);text-decoration:none;font-size:15px}
+.gindex a:hover span:first-child{text-decoration:underline}
+.gindex small{color:var(--soft);font-size:13px;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
+.chip{font-size:13px;border:1px solid var(--line);border-radius:14px;padding:3px 10px;text-decoration:none;white-space:nowrap;background:var(--panel)}
+.chip:hover{background:var(--ink);color:var(--bg)}
+.chip.off{opacity:.45}
+.gindex .chip{display:inline-block;padding:3px 10px;border:1px solid var(--line);font-size:13px}
+/* drawer stack */
+.drawer{max-width:1040px;margin:6px auto 44px}
+.tray{position:relative;padding:22px clamp(10px,2vw,22px) 0;background:var(--well);border:1.5px solid var(--line);border-bottom:0;border-radius:6px 6px 0 0}
+.folder{position:relative;display:block;width:100%;height:182px;margin-top:-136px;padding:0;border:0;background:none;text-align:left;cursor:pointer;transition:transform .4s cubic-bezier(.2,.8,.2,1);animation:rise .6s both cubic-bezier(.2,.8,.2,1);animation-delay:calc(min(var(--i),20)*30ms);text-decoration:none;color:inherit;outline:none}
+.folder:first-child{margin-top:0}
+.folder:last-child{margin-bottom:-62px}
+.tab{position:absolute;top:0;left:var(--x);width:var(--w,31%);height:33px;background:var(--c);color:var(--t);clip-path:polygon(0 100%,4% 0,96% 0,100% 100%);display:flex;align-items:center;gap:8px;padding:0 5.5%;white-space:nowrap}
+.tab em{flex:none;font:500 12.5px "IBM Plex Mono",monospace;font-style:normal;opacity:.85}
+.tab span{font:400 18px/1 "Instrument Serif",serif;overflow:hidden;text-overflow:ellipsis}
+.body{position:absolute;top:32px;left:0;right:0;bottom:0;background:var(--c);color:var(--t);border-radius:3px 3px 0 0;box-shadow:0 -3px 8px -2px rgba(0,0,0,.28);padding:14px clamp(12px,2.4vw,24px);display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:4px 20px;align-content:start;align-items:start}
+.body .thumb{width:84px;height:104px;object-fit:contain;background:rgba(255,255,255,.14);padding:4px;border-radius:2px}
+.body .mono{font:400 13px/1.5 "IBM Plex Mono",monospace;white-space:nowrap}
+.body p{margin:0;font-size:15px;line-height:1.4;max-width:56ch}
+.body p b{display:block;font:400 21px/1.15 "Instrument Serif",serif;margin-bottom:3px}
+.body>*{opacity:0;transition:opacity .25s}
+.folder:is(:hover,:focus-visible) .body>*,.folder:last-child .body>*{opacity:1}
+.open{font-size:13px;border:1px solid currentColor;border-radius:12px;padding:1px 9px;white-space:nowrap;opacity:0;transition:opacity .3s}
+.folder:is(:hover,:focus-visible) ~ .folder{transform:translateY(116px)}
+.folder:is(:hover,:focus-visible){transform:translateY(-6px)}
+.folder:is(:hover,:focus-visible) .open{opacity:1}
+.folder:last-child:not(:hover):not(:focus-visible) .open{opacity:0}
+.folder:focus-visible .tab{outline:3px solid #f2d54a}
+.guide .tab{background:#121212;color:#f4f1e8;--w:24%}
+.guide .body{background:#cfccc3;color:#121212;grid-template-columns:minmax(0,1fr);cursor:default;padding-top:10px}
+.guide.empty .tab{opacity:.55}
+.guide .body .chips{padding:0}
+.guide .chip{background:#f4f1e8;border-color:#121212;color:#121212}
+.guide .body{bottom:-190px;align-content:start}
+.papers{position:relative;display:block;height:210px;margin-top:12px;container-type:inline-size}
+.paper{position:absolute;top:16px;left:calc(var(--k)*12px);width:150px;background:#fbfaf6;color:#121212;padding:8px 8px 10px;text-decoration:none;border-top:4px solid var(--c,#121212);box-shadow:0 10px 18px -10px rgba(0,0,0,.6);transform:rotate(var(--r));transition:left .5s cubic-bezier(.2,.8,.2,1),top .5s,transform .25s;z-index:calc(10 - var(--k))}
+.paper img{display:block;width:100%;height:104px;object-fit:contain;background:#ecebe6}
+.paper em{display:block;font:500 11px/1.4 "IBM Plex Mono",monospace;font-style:normal;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.paper b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:400 15px/1.15 "Instrument Serif",serif}
+.paper.more{height:160px;display:grid;place-content:center;text-align:center;background:#121212;color:#f4f1e8}
+.guide:is(:hover,:focus-within) .paper{top:0;left:calc(var(--k) * min(166px,(100cqw - 150px) / max(var(--n) - 1,1)))}
+.guide .paper:is(:hover,:focus-visible){transform:rotate(0) translateY(-10px);z-index:20;outline:none}
+.guide .paper:focus-visible{box-shadow:0 0 0 3px #1f3fd1}
+.guide:is(:hover,:focus-within) ~ .folder{transform:translateY(270px)}
+.tray:has(.guide:is(:hover,:focus-within)) + .dfront{transform:translateY(270px)!important}
+.drawer:has(.guide:is(:hover,:focus-within)){padding-bottom:270px!important}
+.guide .body .chips a.chip{color:#121212}
+.dfront{position:relative;z-index:60;height:120px;border:1.5px solid var(--line);background:var(--panel);border-radius:0 0 6px 6px;display:grid;place-items:center;align-content:center;gap:12px;transition:transform .4s}
+.tray:has(.folder:is(:hover,:focus-visible)) + .dfront{transform:translateY(116px)}
+.drawer:has(.folder:is(:hover,:focus-visible)){padding-bottom:116px}
+.dfront .pull{position:static;width:180px;height:18px}
+.dfront .holder{width:min(80%,340px)}
+@keyframes rise{from{transform:translateY(60px);opacity:0}}
+/* entry */
+#work{position:fixed;inset:0;z-index:100;background:#141414;color:#ece9e1;overflow:auto;display:none}
+#work.on{display:block}
+.fbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px max(4vw,16px);background:#141414ee;backdrop-filter:blur(6px);flex-wrap:wrap;border-bottom:1px solid #2c2b28}
+.fbar .crumbs{margin:0 auto 0 0;color:#a8a49b}
+#work .btn{background:#1f1e1c;border-color:#5a5750;color:#ece9e1}
+#work .btn:hover{background:#ece9e1;color:#141414}
+.entry{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(20px,3vw,40px);align-items:start;padding:26px 0 50px}
+.plate{position:sticky;top:78px;background:var(--c);border-radius:6px;padding:clamp(16px,3vw,34px);display:grid;gap:16px}
+.mount{position:relative;background:#fbfaf6;padding:clamp(10px,1.6vw,18px);box-shadow:0 18px 34px -16px rgba(0,0,0,.6);transform:rotate(-.5deg)}
+.mount img{display:block;width:100%;height:auto;max-height:min(70vh,760px);object-fit:contain;margin:0 auto}
+.mount i{position:absolute;width:26px;height:26px;background:#1a1916;clip-path:polygon(0 0,100% 0,0 100%)}
+.mount i:nth-of-type(2){right:0;top:0;transform:scaleX(-1)}
+.mount i:nth-of-type(3){left:0;bottom:0;transform:scaleY(-1)}
+.mount i:nth-of-type(4){right:0;bottom:0;transform:scale(-1)}
+.mount i:nth-of-type(1){left:0;top:0}
+.plate .row{display:flex;gap:8px;flex-wrap:wrap}
+.plate .btn{background:#f4f1e8!important;color:#121212!important;border-color:#121212!important}
+.plate .btn:hover{background:#121212!important;color:#f4f1e8!important}
+.plate small{color:var(--t);font-size:13px;opacity:.9}
+.right{display:grid;gap:22px}
+.sheet{position:relative;background:#f4f1e8 repeating-linear-gradient(#0000 0 27px,#cfd6e6 27px 28px) 0 150px/100% 100% no-repeat;color:#1a1916;padding:34px 30px 30px 58px;box-shadow:0 20px 40px -18px rgba(0,0,0,.7);border-radius:2px}
+.sheet::before{content:"";position:absolute;left:20px;top:40px;bottom:40px;width:12px;background:radial-gradient(circle,#141414 4.5px,#0000 5px) 0 0/12px 33.3% repeat-y}
+.sheet::after{content:"";position:absolute;left:44px;top:0;bottom:0;border-left:1.5px solid #e9a0a8}
+.sheet h1{font:italic 400 clamp(34px,4vw,48px)/1.02 "Instrument Serif",serif;margin:0 0 18px;padding-right:90px;text-wrap:balance}
+.stamp{position:absolute;right:20px;top:22px;border:1.5px solid #3e4fbf;color:#3e4fbf;font:500 12px "IBM Plex Mono",monospace;padding:3px 7px;transform:rotate(3deg);white-space:nowrap}
+.meta{font:400 13px/1.55 "IBM Plex Mono",monospace;display:grid;grid-template-columns:max-content 1fr;gap:3px 14px;margin:0 0 20px}
+.meta dt{color:#6f6a5f}
+.meta dd{margin:0}
+.meta a{text-decoration-color:#9aa3c8}
+.sheet h2{font:400 24px/1 "Instrument Serif",serif;margin:18px 0 6px}
+.sheet p{font:400 17px/28px "Newsreader",Georgia,serif;margin:0}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.sn{position:relative;display:block;color:#121212;text-decoration:none;padding:16px 16px 14px;box-shadow:0 14px 22px -12px rgba(0,0,0,.7);transform:rotate(var(--r));transition:transform .25s}
+.sn:hover,.sn:focus-visible{transform:rotate(0) translateY(-4px);outline:none}
+.sn:focus-visible{box-shadow:0 0 0 3px #f2d54a}
+.sn::before{content:"";position:absolute;left:50%;top:-9px;width:70px;height:18px;margin-left:-35px;background:rgba(255,255,255,.55);transform:rotate(-3deg)}
+.sn small{font:500 12px "IBM Plex Mono",monospace;opacity:.75}
+.sn b{display:block;font:400 25px/1.05 "Instrument Serif",serif;margin:4px 0 6px}
+.sn span{display:block;font-size:14px;line-height:1.4}
+.sn em{display:block;font:500 12.5px "IBM Plex Mono",monospace;font-style:normal;margin-top:8px}
+.sn .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.sn .tags a{font-size:12.5px;border:1px solid #121212;border-radius:10px;padding:1px 8px;text-decoration:none;color:#121212}
+.sn .tags a:hover{background:#121212;color:#f4f1e8}
+.gcard{background:#fbfaf6;color:#1a1916;border-top:5px solid #e2462a;padding:14px 16px 10px;box-shadow:0 14px 26px -14px rgba(0,0,0,.6)}
+.gcard h2{font:400 22px "Instrument Serif",serif;margin:0}
+.gcard svg{display:block;width:100%;height:auto}
+.gcard a:hover rect{stroke-width:2.5}
+.rel h2{font:400 28px "Instrument Serif",serif;margin:0 0 10px}
+.relrow{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 12px}
+.relrow a{flex:none;width:170px;scroll-snap-align:start;text-decoration:none;color:#ece9e1}
+.relrow img{display:block;width:170px;height:150px;object-fit:contain;background:#26241f;padding:8px;border-top:4px solid var(--c)}
+.relrow b{display:block;font:400 17px/1.15 "Instrument Serif",serif;margin-top:6px}
+.relrow small{font-size:13px;color:#a8a49b}
+.note{background:#f2d54a;color:#121212;padding:10px 14px;border-radius:3px;font-size:14px;margin:12px 0 0}
+footer{border-top:1.5px solid var(--line);padding:18px 0 30px;font-size:14px;color:var(--soft);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+kbd{font:500 12px "IBM Plex Mono",monospace;border:1px solid var(--soft);border-radius:4px;padding:1px 5px}
+@media(max-width:900px){.entry{grid-template-columns:minmax(0,1fr)}.plate{position:relative;top:0}.gindex{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.cab{grid-template-columns:minmax(0,1fr)}.dr{aspect-ratio:2.3}.tab{--w:56%!important}.tab[data-p="1"]{--x:42%!important}.tab[data-p="2"]{--x:20%!important}.guide .tab{--x:2%!important}.body{grid-template-columns:auto minmax(0,1fr)}.body .mono,.body .open{display:none}.notes{grid-template-columns:minmax(0,1fr)}.sheet{padding:28px 18px 24px 48px}.sheet::after{left:38px}.sheet::before{left:14px}.stamp{position:static;display:inline-block;margin-bottom:10px}.sheet h1{padding-right:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#cabinet">The Ephemera Cabinet<span>Index</span></a>
+    <div class="search" role="search">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg>
+      <input id="q" type="search" placeholder="Search works, designers, clients, styles" autocomplete="off" aria-label="Search the archive">
+      <ul id="res"></ul>
+    </div>
+  </header>
+  <main id="view"><p class="head">Opening the cabinet…</p></main>
+  <footer><span id="src">Loading records…</span><span>Hover a drawer or tab, click to open · <kbd>←</kbd> <kbd>→</kbd> to leaf · <kbd>Esc</kbd> to go back</span></footer>
+</div>
+<section id="work" role="dialog" aria-modal="true" aria-label="Archive entry"></section>
+
+<script>
+{
+/* Paste your Apps Script web-app URL (ends in /exec) to read live from Google Sheets. */
+const DATA_URL = "";
+const SAMPLE = {"version": 3, "updated": "sample", "structure": [{"name": "Practical Ephemera", "code": "PE", "subs": [{"name": "Currency", "code": "CUR", "types": []}, {"name": "Magazine", "code": "MAG", "types": []}, {"name": "Books", "code": "BOK", "types": []}, {"name": "Newspaper", "code": "NWS", "types": []}, {"name": "Traffic Signage", "code": "TRS", "types": []}, {"name": "Operational Assets", "code": "OPA", "types": ["Photo Studios", "Photo Studio Envelopes", "Restaurants", "Napkins", "Menus", "Businesses", "Letterheads", "Business Cards", "Hotel Paraphernalia", "Airline Paraphernalia", "Department Stores", "Department Store Catalogues", "Department Store Wrapping Paper"]}, {"name": "Board Games", "code": "BGM", "types": []}, {"name": "Product Label", "code": "PLB", "types": []}, {"name": "Product Package", "code": "PPK", "types": []}, {"name": "Food Package", "code": "FPK", "types": []}]}, {"name": "Promotional Collateral", "code": "PC", "subs": [{"name": "Commercial Brochure", "code": "CBR", "types": []}, {"name": "Advertisement", "code": "ADV", "types": []}]}, {"name": "Media Marketing Collateral", "code": "MMC", "subs": [{"name": "Film Poster", "code": "FPO", "types": []}, {"name": "Film Brochure", "code": "FBR", "types": []}, {"name": "Film Graphics", "code": "FGR", "types": []}, {"name": "Opera Brochure", "code": "OBR", "types": []}, {"name": "Television Broadcast Graphics", "code": "TVG", "types": []}, {"name": "VHS Tape Covers", "code": "VHS", "types": []}, {"name": "Cassette", "code": "CAS", "types": []}, {"name": "Vinyl Record Cover", "code": "VRC", "types": []}, {"name": "Vinyl Record Label", "code": "VRL", "types": []}, {"name": "Vinyl Sono-zine", "code": "VSZ", "types": []}]}, {"name": "Social and Commemorative Ephemera", "code": "SCE", "subs": [{"name": "Promotional Image", "code": "PRI", "types": []}, {"name": "Post Card", "code": "PCD", "types": []}, {"name": "Postage", "code": "PST", "types": []}]}], "styles": {"Post-Modernist Design": ["Postmodernism", "Memphis Design", "New Wave Typography", "Punk Design", "Grunge Design", "Deconstructivism", "Anti-Design", "Maximalism", "Retro-Futurism", "Appropriation Art", "Neo-Expressionism", "Postmodern Eclecticism", "Digital Postmodernism", "Pastiche", "Brutalist Revival"], "Modernist Design": ["International Typographic Style", "Swiss Style", "Mid-Century Modern", "Corporate Modernism", "Minimalism", "Pop Art", "Op Art", "Abstract Expressionism", "Kinetic Art", "Space Age Design", "Atomic Age Design", "International Style", "Geometric Abstraction", "Functionalism", "Modernist Illustration"], "Early Modernist Design": ["Art Nouveau", "Belle Époque", "Jugendstil", "Vienna Secession", "Arts and Crafts", "Art Deco", "Cubism", "Futurism", "Expressionism", "Dadaism", "De Stijl", "Constructivism", "Suprematism", "Bauhaus", "Vorticism"]}, "entities": [{"id": "E01", "abbr": "BTR", "name": "Bank of the Two Rivers", "type": "Public Sector", "notes": "Sample record, replace with your own"}, {"id": "E02", "abbr": "MOR", "name": "Ministry of Roads", "type": "Public Sector", "notes": "Sample record, replace with your own"}, {"id": "E03", "abbr": "PAU", "name": "Postal Authority", "type": "Public Sector", "notes": "Sample record, replace with your own"}, {"id": "E04", "abbr": "OCC", "name": "Orion Cinema Company", "type": "Private Sector", "notes": "Sample record, replace with your own"}, {"id": "E05", "abbr": "HBV", "name": "Hotel Belvedere", "type": "Private Sector", "notes": "Sample record, replace with your own"}, {"id": "E06", "abbr": "LUM", "name": "Lumen Records", "type": "Private Sector", "notes": "Sample record, replace with your own"}, {"id": "E07", "abbr": "ATL", "name": "Atlas Department Store", "type": "Private Sector", "notes": "Sample record, replace with your own"}, {"id": "E08", "abbr": "NBC", "name": "Nour Biscuit Co.", "type": "Private Sector", "notes": "Sample record, replace with your own"}, {"id": "E09", "abbr": "ANA", "name": "Aeronord Airways", "type": "Private Sector", "notes": "Sample record, replace with your own"}], "designers": [{"id": "D01", "name": "H. Saleh", "kind": "Individual", "years": "1928–1961", "notes": "Sample record, replace with your own"}, {"id": "D02", "name": "Kasr Print House", "kind": "Print House", "years": "1905–1970", "notes": "Sample record, replace with your own"}, {"id": "D03", "name": "Studio Meridian", "kind": "Studio", "years": "1956–1984", "notes": "Sample record, replace with your own"}, {"id": "D04", "name": "Leila Aziz", "kind": "Individual", "years": "1962–1995", "notes": "Sample record, replace with your own"}, {"id": "D05", "name": "Grafica Nove", "kind": "Studio", "years": "1979–1999", "notes": "Sample record, replace with your own"}, {"id": "D06", "name": "Atelier Vogel", "kind": "Print House", "years": "1912–1948", "notes": "Sample record, replace with your own"}], "works": [{"id": "PE-CUR-BTR-0001-1931", "uid": 1, "title": "Ten-piastre note, harvest series", "year": "1931", "country": "Egypt", "entity": "E01", "designer": "D06", "intent": "Make a new note feel stable and familiar to people who distrusted paper money.", "category": "Practical Ephemera", "subcategory": "Currency", "types": [], "movement": "Early Modernist Design", "designStyle": "Art Nouveau", "typeStyle": "Belle Époque", "dims": "150 × 75 mm", "credit": "Sample record", "source": "", "notes": "Engraved border with wheat sheaves; serial numbers in red.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-TRS-MOR-0002-1964", "uid": 2, "title": "Intercity road sign set", "year": "1964", "country": "Egypt", "entity": "E02", "designer": "D03", "intent": "Be readable at speed, in two scripts, from 200 metres.", "category": "Practical Ephemera", "subcategory": "Traffic Signage", "types": [], "movement": "Modernist Design", "designStyle": "Swiss Style", "typeStyle": "International Typographic Style", "dims": "900 × 600 mm", "credit": "Sample record", "source": "", "notes": "White on blue, with matched stroke weights across both scripts.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-OPA-HBV-0003-1936", "uid": 3, "title": "Belvedere luggage label", "year": "1936", "country": "Egypt", "entity": "E05", "designer": "D01", "intent": "Advertise the hotel on every suitcase that leaves it.", "category": "Practical Ephemera", "subcategory": "Operational Assets", "types": ["Hotel Paraphernalia"], "movement": "Early Modernist Design", "designStyle": "Art Deco", "typeStyle": "Bauhaus", "dims": "110 × 80 mm", "credit": "Sample record", "source": "", "notes": "Gummed paper; a sunburst behind the hotel tower.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-OPA-HBV-0004-1938", "uid": 4, "title": "Belvedere dinner menu and napkin", "year": "1938", "country": "Egypt", "entity": "E05", "designer": "D01", "intent": "Set the tone of the dining room before the food arrives.", "category": "Practical Ephemera", "subcategory": "Operational Assets", "types": ["Restaurants", "Menus", "Napkins"], "movement": "Early Modernist Design", "designStyle": "Art Deco", "typeStyle": "Art Deco", "dims": "210 × 300 mm", "credit": "Sample record", "source": "", "notes": "Folded card menu, gold ink on cream, with a printed paper napkin in the same pattern.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-OPA-ATL-0005-1959", "uid": 5, "title": "Atlas spring catalogue", "year": "1959", "country": "Lebanon", "entity": "E07", "designer": "D03", "intent": "Show a whole season of goods as one modern household.", "category": "Practical Ephemera", "subcategory": "Operational Assets", "types": ["Department Stores", "Department Store Catalogues"], "movement": "Modernist Design", "designStyle": "Geometric Abstraction", "typeStyle": "Swiss Style", "dims": "240 × 310 mm", "credit": "Sample record", "source": "", "notes": "Forty pages; cover made of overlapping coloured circles.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-OPA-ATL-0006-1962", "uid": 6, "title": "Atlas wrapping paper, star pattern", "year": "1962", "country": "Lebanon", "entity": "E07", "designer": "D03", "intent": "Turn every parcel carried home into a small advertisement.", "category": "Practical Ephemera", "subcategory": "Operational Assets", "types": ["Department Stores", "Department Store Wrapping Paper"], "movement": "Modernist Design", "designStyle": "Op Art", "typeStyle": "Geometric Abstraction", "dims": "700 × 1000 mm sheet", "credit": "Sample record", "source": "", "notes": "Two-colour repeat printed on thin kraft.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-OPA-ANA-0007-1967", "uid": 7, "title": "Aeronord ticket wallet", "year": "1967", "country": "Italy", "entity": "E09", "designer": "D04", "intent": "Make a long trip feel organised from the moment of booking.", "category": "Practical Ephemera", "subcategory": "Operational Assets", "types": ["Airline Paraphernalia"], "movement": "Modernist Design", "designStyle": "International Typographic Style", "typeStyle": "Swiss Style", "dims": "230 × 105 mm", "credit": "Sample record", "source": "", "notes": "Pockets for ticket, baggage tag and timetable.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-FPK-NBC-0008-1952", "uid": 8, "title": "Nour biscuit tin", "year": "1952", "country": "Egypt", "entity": "E08", "designer": "D02", "intent": "Make a cheap biscuit look like a gift worth keeping.", "category": "Practical Ephemera", "subcategory": "Food Package", "types": [], "movement": "Early Modernist Design", "designStyle": "Arts and Crafts", "typeStyle": "Art Nouveau", "dims": "200 × 200 × 80 mm", "credit": "Sample record", "source": "", "notes": "Lithographed tin; often reused for sewing kits.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-FPK-NBC-0009-1984", "uid": 9, "title": "Nour wafer wrapper", "year": "1984", "country": "Egypt", "entity": "E08", "designer": "D05", "intent": "Stand out on a crowded kiosk shelf to children.", "category": "Practical Ephemera", "subcategory": "Food Package", "types": [], "movement": "Post-Modernist Design", "designStyle": "Memphis Design", "typeStyle": "New Wave Typography", "dims": "160 × 60 mm", "credit": "Sample record", "source": "", "notes": "Squiggles and confetti on a pink ground.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-OPA-LUM-0010-1958", "uid": 10, "title": "Lumen Records stationery set", "year": "1958", "country": "Lebanon", "entity": "E06", "designer": "D03", "intent": "Give a young label the look of an established firm.", "category": "Practical Ephemera", "subcategory": "Operational Assets", "types": ["Businesses", "Letterheads", "Business Cards"], "movement": "Modernist Design", "designStyle": "Corporate Modernism", "typeStyle": "International Typographic Style", "dims": "A4", "credit": "Sample record", "source": "", "notes": "Letterhead and business card sharing one blue rule; address set flush left.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "MMC-FPO-OCC-0011-1947", "uid": 11, "title": "Film poster, The Long Harbour", "year": "1947", "country": "Egypt", "entity": "E04", "designer": "D02", "intent": "Sell a melodrama to a city audience in one glance.", "category": "Media Marketing Collateral", "subcategory": "Film Poster", "types": [], "movement": "Early Modernist Design", "designStyle": "Constructivism", "typeStyle": "Constructivism", "dims": "70 × 100 cm", "credit": "Sample record", "source": "", "notes": "Stone lithograph; title lettering drawn by hand.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "MMC-FBR-OCC-0012-1963", "uid": 12, "title": "Orion summer season brochure", "year": "1963", "country": "Egypt", "entity": "E04", "designer": "D04", "intent": "List a full season of films in one fold-out.", "category": "Media Marketing Collateral", "subcategory": "Film Brochure", "types": [], "movement": "Modernist Design", "designStyle": "Pop Art", "typeStyle": "Mid-Century Modern", "dims": "100 × 210 mm folded", "credit": "Sample record", "source": "", "notes": "Six panels; stills cropped into circles.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "MMC-VRC-LUM-0013-1961", "uid": 13, "title": "LP cover, Night Tram", "year": "1961", "country": "Lebanon", "entity": "E06", "designer": "D03", "intent": "Express the sound of a jazz record without a photograph.", "category": "Media Marketing Collateral", "subcategory": "Vinyl Record Cover", "types": [], "movement": "Modernist Design", "designStyle": "Mid-Century Modern", "typeStyle": "Swiss Style", "dims": "31 × 31 cm", "credit": "Sample record", "source": "", "notes": "Three colours; the circles echo the tram headlights.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "MMC-VRL-LUM-0014-1963", "uid": 14, "title": "Record label, blue series", "year": "1963", "country": "Lebanon", "entity": "E06", "designer": "D03", "intent": "Identify the series at a glance on a spinning disc.", "category": "Media Marketing Collateral", "subcategory": "Vinyl Record Label", "types": [], "movement": "Modernist Design", "designStyle": "Swiss Style", "typeStyle": "International Typographic Style", "dims": "10 cm diameter", "credit": "Sample record", "source": "", "notes": "Printed paper label; track list set in two columns.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "MMC-CAS-LUM-0015-1986", "uid": 15, "title": "Cassette inlay, Static", "year": "1986", "country": "Lebanon", "entity": "E06", "designer": "D05", "intent": "Make a cheap tape feel like a collectible.", "category": "Media Marketing Collateral", "subcategory": "Cassette", "types": [], "movement": "Post-Modernist Design", "designStyle": "Memphis Design", "typeStyle": "New Wave Typography", "dims": "100 × 65 mm", "credit": "Sample record", "source": "", "notes": "Fold-out J-card printed in fluorescent pink.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "MMC-VHS-OCC-0016-1991", "uid": 16, "title": "VHS cover, Desert Line", "year": "1991", "country": "Egypt", "entity": "E04", "designer": "D05", "intent": "Rent out an old film to a new home-video audience.", "category": "Media Marketing Collateral", "subcategory": "VHS Tape Covers", "types": [], "movement": "Post-Modernist Design", "designStyle": "Appropriation Art", "typeStyle": "Postmodern Eclecticism", "dims": "190 × 105 mm", "credit": "Sample record", "source": "", "notes": "Sleeve reuses the 1950s poster art, recropped.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PC-CBR-ANA-0017-1970", "uid": 17, "title": "Aeronord route brochure", "year": "1970", "country": "Italy", "entity": "E09", "designer": "D04", "intent": "Explain a new route network to travel agents.", "category": "Promotional Collateral", "subcategory": "Commercial Brochure", "types": [], "movement": "Modernist Design", "designStyle": "International Typographic Style", "typeStyle": "International Typographic Style", "dims": "210 × 210 mm", "credit": "Sample record", "source": "", "notes": "Route map drawn as straight lines at 45 degrees.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PC-ADV-NBC-0018-1955", "uid": 18, "title": "Nour biscuit newspaper advertisement", "year": "1955", "country": "Egypt", "entity": "E08", "designer": "D01", "intent": "Remind households of the brand in the daily paper.", "category": "Promotional Collateral", "subcategory": "Advertisement", "types": [], "movement": "Modernist Design", "designStyle": "Modernist Illustration", "typeStyle": "Modernist Illustration", "dims": "Quarter page", "credit": "Sample record", "source": "", "notes": "Line drawing that survives cheap newsprint.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "SCE-PST-PAU-0019-1966", "uid": 19, "title": "Stamp, the new bridge", "year": "1966", "country": "Egypt", "entity": "E03", "designer": "D04", "intent": "Celebrate a public work on every letter posted.", "category": "Social and Commemorative Ephemera", "subcategory": "Postage", "types": [], "movement": "Modernist Design", "designStyle": "Minimalism", "typeStyle": "Minimalism", "dims": "30 × 40 mm", "credit": "Sample record", "source": "", "notes": "Two colours; the bridge reduced to three arcs.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "SCE-PST-PAU-0020-1965", "uid": 20, "title": "Stamp, centenary of the post", "year": "1965", "country": "Egypt", "entity": "E03", "designer": "D02", "intent": "Mark an anniversary with official dignity.", "category": "Social and Commemorative Ephemera", "subcategory": "Postage", "types": [], "movement": "Early Modernist Design", "designStyle": "Belle Époque", "typeStyle": "Belle Époque", "dims": "30 × 40 mm", "credit": "Sample record", "source": "", "notes": "Recess-printed; a mail coach in the frame.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "SCE-PCD-HBV-0021-1934", "uid": 21, "title": "Postcard, terrace at dusk", "year": "1934", "country": "Egypt", "entity": "E05", "designer": "D06", "intent": "Let guests send the hotel home to their friends.", "category": "Social and Commemorative Ephemera", "subcategory": "Post Card", "types": [], "movement": "Early Modernist Design", "designStyle": "Art Deco", "typeStyle": "Art Deco", "dims": "140 × 90 mm", "credit": "Sample record", "source": "", "notes": "Hand-tinted photograph with a printed caption.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "SCE-PRI-ATL-0022-1958", "uid": 22, "title": "Atlas opening-day photograph", "year": "1958", "country": "Lebanon", "entity": "E07", "designer": "D03", "intent": "Show the crowds at the new store to people who missed it.", "category": "Social and Commemorative Ephemera", "subcategory": "Promotional Image", "types": [], "movement": "Modernist Design", "designStyle": "Corporate Modernism", "typeStyle": "Corporate Modernism", "dims": "18 × 24 cm", "credit": "Sample record", "source": "", "notes": "Press print with a caption strip pasted on the back.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-BOK-MOR-0023-1968", "uid": 23, "title": "Road atlas cover", "year": "1968", "country": "Egypt", "entity": "E02", "designer": "D03", "intent": "Make the national road network look modern and complete.", "category": "Practical Ephemera", "subcategory": "Books", "types": [], "movement": "Modernist Design", "designStyle": "Functionalism", "typeStyle": "Functionalism", "dims": "170 × 240 mm", "credit": "Sample record", "source": "", "notes": "Cloth binding with the route network blind-stamped.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}, {"id": "PE-MAG-ANA-0024-1988", "uid": 24, "title": "Aeronord in-flight magazine", "year": "1988", "country": "Italy", "entity": "E09", "designer": "D05", "intent": "Fill a long flight with a brand worth remembering.", "category": "Practical Ephemera", "subcategory": "Magazine", "types": [], "movement": "Post-Modernist Design", "designStyle": "Maximalism", "typeStyle": "Memphis Design", "dims": "210 × 280 mm", "credit": "Sample record", "source": "", "notes": "Issue 12; cover built from cut-paper shapes.", "img": {"web": "", "full": "", "thumb": "", "w": 0, "h": 0}}]};
+
+const PAL=[["#1f3fd1","#fff"],["#e2462a","#121212"],["#217a4b","#fff"],["#141414","#f4f1e8"],["#6a2a86","#fff"],["#f2d54a","#121212"],["#ef9ab8","#121212"],["#f07c22","#121212"]];
+const CAB=[["#1f3fd1","#fff"],["#e2462a","#121212"],["#217a4b","#fff"],["#f2d54a","#121212"],["#6a2a86","#fff"],["#ef9ab8","#121212"]];
+const MOVES=["Early Modernist Design","Modernist Design","Post-Modernist Design"];
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const slug=s=>String(s||"").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"x";
+const okUrl=u=>/^https:\/\//i.test(u||"")?u:"";
+const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;return h};
+const rng=s=>()=>(s=s*16807%2147483647)/2147483647;
+const view=$("#view"),workEl=$("#work");
+let G=null,lastView="cabinet";
+
+/* ---------- graph ---------- */
+function build(p){
+  const g={p,W:{},E:{},D:{},cats:[],subs:{},types:{},order:[],styles:p.styles||{}};
+  (p.entities||[]).forEach(e=>g.E[e.id]=e);
+  (p.designers||[]).forEach(d=>g.D[d.id]=d);
+  (p.structure||[]).forEach(c=>{g.cats.push(c.name);g.subs[c.name]=c.subs.map(x=>x.name);c.subs.forEach(x=>{g.types[x.name]=x.types?x.types.map(t=>t.name||t):[].concat(...Object.values(x.groups||{}))})});
+  (p.works||[]).forEach(w=>{
+    w.types=w.types||[];w.path=[w.category,w.subcategory];
+    if(!g.subs[w.category]){g.subs[w.category]=[];g.cats.push(w.category)}
+    if(!g.subs[w.category].includes(w.subcategory))g.subs[w.category].push(w.subcategory);
+    const tl=(g.types[w.subcategory]=g.types[w.subcategory]||[]);w.types.forEach(t=>{if(!tl.includes(t))tl.push(t)});
+    w.leaf=w.types[0]||w.subcategory;w.kind=w.types.length?w.types.join(" + "):w.subcategory;
+    w.col=PAL[hash(w.leaf)%PAL.length];w.key=w.id.toLowerCase();g.W[w.key]=w});
+  const rank=w=>{const ci=g.cats.indexOf(w.category),si=g.subs[w.category].indexOf(w.subcategory);return ci*1e7+si*1e5+(+w.year||0)};
+  g.order=Object.values(g.W).sort((a,b)=>rank(a)-rank(b));
+  g.cats.forEach((c,i)=>g.cats[i]={name:c,slug:slug(c),col:CAB[i%CAB.length]});
+  return g;
+}
+const catOf=name=>G.cats.find(c=>c.name===name);
+const worksWhere=f=>G.order.filter(f);
+const years=list=>{const y=list.map(w=>+w.year).filter(Boolean);return y.length?Math.min(...y)+"–"+Math.max(...y):""};
+
+/* ---------- drawn placeholder for records without an image yet ---------- */
+const ASPECT={"Currency":2,"Traffic Signage":1.5,"Post Card":1.5,"Business Cards":1.75,"Airline Paraphernalia":2.1,"Hotel Paraphernalia":1.38,"Cassette":1.55,"VHS Tape Covers":.56,"Vinyl Record Cover":1,"Vinyl Record Label":1,"Food Package":1,"Postage":.76,"Letterheads":.71,"Promotional Image":.76,"Department Store Wrapping Paper":1,"Commercial Brochure":1};
+function specimen(w){
+  const r=rng(hash(w.id)+11),ar=ASPECT[w.leaf]||.71,W=600,H=Math.round(W/ar);
+  const mv=MOVES.indexOf(w.movement),c=w.col[0];
+  const words=(w.title||"").split(" ");let lines=[""];words.forEach(x=>{if((lines[lines.length-1]+" "+x).length>(ar>1.2?22:16))lines.push(x);else lines[lines.length-1]=(lines[lines.length-1]+" "+x).trim()});lines=lines.slice(0,3);
+  const fs=Math.min(64,W/ (Math.max(...lines.map(l=>l.length))*0.55+2));
+  let s="",bg,ink,font;
+  if(mv===0){bg="#efe6cf";ink="#2a2018";font="Georgia,serif";
+    for(let i=0;i<22;i++){const a=Math.PI*(i/21);s+=`<path d="M${W/2} ${H*.95} L${W/2-Math.cos(a)*W} ${H*.95-Math.sin(a)*W}" stroke="#c49a3a" stroke-width="5" opacity=".55"/>`}
+    s+=`<circle cx="${W/2}" cy="${H*.95}" r="${W*.2}" fill="${c}"/><rect x="18" y="18" width="${W-36}" height="${H-36}" fill="none" stroke="${ink}" stroke-width="4"/><rect x="30" y="30" width="${W-60}" height="${H-60}" fill="none" stroke="${ink}" stroke-width="1.5"/>`;
+  }else if(mv===2){bg=["#f3a6c0","#9fe0c8","#f6e27a"][hash(w.id)%3];ink="#121212";font="Arial Black,Helvetica,sans-serif";
+    for(let i=0;i<26;i++){const x=r()*W,y=r()*H,k=r();s+=k<.33?`<path d="M${x} ${y} l20 -34 l20 34z" fill="${PAL[i%8][0]}"/>`:k<.66?`<path d="M${x} ${y} q12 -18 24 0 t24 0 t24 0" fill="none" stroke="#121212" stroke-width="5"/>`:`<circle cx="${x}" cy="${y}" r="${6+r()*14}" fill="${PAL[(i+3)%8][0]}"/>`}
+  }else{bg=c;ink=w.col[1];font="Helvetica,Arial,sans-serif";
+    for(let i=0;i<5;i++)s+=`<circle cx="${W*(.25+r()*.6)}" cy="${H*(.15+r()*.45)}" r="${W*(.08+r()*.2)}" fill="${PAL[(hash(w.id)+i*3)%8][0]}" opacity=".9" style="mix-blend-mode:multiply"/>`;
+    s+=`<rect x="0" y="${H*.72}" width="${W}" height="6" fill="${ink}"/>`}
+  if(/Photo/.test(w.designStyle||"")){let x=0;while(x<W){const bw=50+r()*80,bh=H*(.25+r()*.4);const gr=70+Math.floor(r()*90);s+=`<rect x="${x}" y="${H*.72-bh}" width="${bw}" height="${bh}" fill="rgb(${gr},${gr},${gr})"/>`;x+=bw+6}}
+  if(w.leaf==="Vinyl Record Label"){bg="#121212";s=`<circle cx="300" cy="300" r="290" fill="#1c1c1c"/><circle cx="300" cy="300" r="170" fill="${c}"/><circle cx="300" cy="300" r="10" fill="#121212"/>`;ink=w.col[1];}
+  if(w.leaf==="Currency"){for(let i=0;i<16;i++)s+=`<ellipse cx="${W*.72}" cy="${H/2}" rx="${H*.36}" ry="${H*.13}" transform="rotate(${i*11.25} ${W*.72} ${H/2})" fill="none" stroke="${c}" stroke-width="1.4" opacity=".7"/>`;s+=`<text x="${W*.72}" y="${H/2+22}" font-family="Georgia,serif" font-size="70" text-anchor="middle" fill="${ink}">10</text>`}
+  const ty=w.leaf==="Vinyl Record Label"?300-lines.length*fs*.45:mv===1?H*.8:H*.42-lines.length*fs*.4,tx=mv===1?40:W/2,anchor=mv===1?"start":"middle";
+  const txt=lines.map((l,i)=>`<text x="${tx}" y="${ty+(i+1)*fs*1.05}" font-family="${font}" font-weight="${mv===0?400:700}" font-size="${fs}" text-anchor="${anchor}" fill="${ink}"${mv===2?` transform="rotate(-6 ${W/2} ${H/2})"`:""}>${esc(l)}</text>`).join("");
+  let body=`<rect width="${W}" height="${H}" fill="${bg}"/>${s}${txt}<text x="${W-24}" y="${H-22}" font-family="Courier New,monospace" font-size="18" text-anchor="end" fill="${ink}" opacity=".7">${esc(w.id)} · ${esc(w.year)}</text>`;
+  if(w.leaf==="Postage"){let p="";for(let x=0;x<=W;x+=24)p+=`<circle cx="${x}" cy="0" r="8"/><circle cx="${x}" cy="${H}" r="8"/>`;for(let y=0;y<=H;y+=24)p+=`<circle cx="0" cy="${y}" r="8"/><circle cx="${W}" cy="${y}" r="8"/>`;body+=`<g fill="#fbfaf6">${p}</g>`}
+  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${body}</svg>`);
+}
+const imgWeb=w=>okUrl(w.img&&w.img.web)||specimen(w);
+const imgThumb=w=>okUrl(w.img&&w.img.thumb)||okUrl(w.img&&w.img.web)||specimen(w);
+document.addEventListener("error",e=>{const t=e.target;if(t.tagName==="IMG"&&t.dataset.w&&!t.dataset.fell){t.dataset.fell=1;const w=G.W[t.dataset.w];if(w)t.src=specimen(w)}},true);
+
+/* ---------- views ---------- */
+function cabinet(){
+  const all=G.order,ds=Object.values(G.D),es=Object.values(G.E);
+  const cnt=(f)=>all.filter(f).length;
+  view.innerHTML=`<div class="head"><div><h1>Designed ephemera, filed by what it was made to do</h1><p>Each drawer holds one kind of solution. Inside, black guide cards mark the subcategories; every folder is one work, linked to its client, designer and design philosophy.</p></div>
+  <div class="stats"><div><b>${all.length}</b>works</div><div><b>${ds.length}</b>designers</div><div><b>${es.length}</b>clients</div><div><b>${esc(years(all)||"–")}</b>span</div></div></div>
+  <div class="cab">${G.cats.map(c=>{const ws=all.filter(w=>w.category===c.name);return `<a class="dr" href="#drawer-${c.slug}" aria-label="${esc(c.name)}, ${ws.length} works">
+    <span class="peek">${ws.slice(0,6).map((w,i)=>`<i style="background:${w.col[0]};left:${(i%3)*35}%;top:${i*4}px"></i>`).join("")}</span>
+    <span class="front"><span class="holder"><span class="card" style="--c:${c.col[0]};--t:${c.col[1]}">${esc(c.name)}</span></span><small>${ws.length} works · ${G.subs[c.name].length} sections${ws.length?" · "+esc(years(ws)):""}</small></span>
+    <span class="pull"></span></a>`}).join("")}</div><div class="plinth"></div>
+  <div class="gindex">
+   <section style="--c:#f2d54a"><h2>Designers</h2>${ds.map(d=>`<a href="#designer-${slug(d.id)}"><span>${esc(d.name)}</span><small>${esc(d.kind)} · ${esc(d.years)} · ${cnt(w=>w.designer===d.id)}</small></a>`).join("")||"<p>No designers yet.</p>"}</section>
+   <section style="--c:#ef9ab8"><h2>Clients</h2>${es.map(e=>`<a href="#entity-${slug(e.id)}"><span>${esc(e.name)}</span><small>${esc((e.type||"").replace(" Sector",""))} · ${cnt(w=>w.entity===e.id)}</small></a>`).join("")||"<p>No clients yet.</p>"}</section>
+   <section style="--c:#217a4b"><h2>Design philosophy</h2>${MOVES.map(m=>{const st=(G.styles[m]||[]).map(v=>[v,cnt(w=>w.designStyle===v)]).filter(x=>x[1]);return `<a href="#movement-${slug(m)}"><span>${esc(m.replace(" Design",""))}</span><small>${cnt(w=>w.movement===m)}</small></a>${st.length?`<div class="chips">${st.map(([v,n])=>`<a class="chip" href="#style-${slug(v)}">${esc(v)} ${n}</a>`).join("")}</div>`:""}`}).join("")}
+    <h2 style="font-size:20px;margin-top:12px">Typography</h2><div class="chips">${facet("typeStyle").map(([v,n])=>`<a class="chip" href="#typo-${slug(v)}">${esc(v)} ${n}</a>`).join("")}</div></section>
+  </div>`;
+}
+function facet(k){const m={};G.order.forEach(w=>{if(w[k])m[w[k]]=(m[w[k]]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])}
+
+function folderHTML(w,i,p){
+  const e=G.E[w.entity],d=G.D[w.designer];
+  return `<a class="folder" href="#work-${w.key}" style="--i:${i};--c:${w.col[0]};--t:${w.col[1]};z-index:${i+1}">
+   <span class="tab" data-p="${p}" style="--x:${27+p*23}%;--w:26%"><span>${esc(w.title)}</span><em>${esc(w.year)}</em></span>
+   <span class="body"><img class="thumb" loading="lazy" decoding="async" alt="" data-w="${w.key}" src="${esc(imgThumb(w))}"><span class="mono">${esc(w.id)}<br>${esc(w.country)}</span>
+   <p><b>${esc(w.kind)}</b>${esc(e?e.name:"Unknown client")} · ${esc(d?d.name:"Unknown designer")}<br>${esc(w.movement.replace(" Design",""))}${w.designStyle?" · "+esc(w.designStyle):""}</p><span class="open">Open entry</span></span></a>`;
+}
+function papersHTML(ws){
+  const show=ws.slice(0,7),n=show.length+(ws.length>7?1:0);
+  return `<span class="papers" style="--n:${n}">${show.map((w,k)=>`<a class="paper" href="#work-${w.key}" style="--k:${k};--r:${((hash(w.id)%9)-4)*.8}deg;--c:${w.col[0]}"><img loading="lazy" alt="" data-w="${w.key}" src="${esc(imgThumb(w))}"><em>${esc(w.id)}</em><b>${esc(w.title)}</b></a>`).join("")}${ws.length>7?`<span class="paper more" style="--k:7;--r:2deg"><b>+${ws.length-7} more</b><em>below this guide</em></span>`:""}</span>`;
+}
+function stack(groups,label){
+  let i=0,html="";
+  groups.forEach(g=>{
+    const types=g.types||[];
+    html+=`<div class="folder guide${g.works.length?"":" empty"}" id="g-${slug(g.name)}" tabindex="0" style="--i:${i};z-index:${i+1}"><span class="tab" style="--x:2%"><span>${esc(g.name)}</span><em>${String(g.works.length).padStart(3,"0")}</em></span>
+     <span class="body"><span class="chips">${types.length?types.map(t=>{const n=g.works.filter(w=>w.types.includes(t)).length;return `<a class="chip${n?"":" off"}" href="#kind-${slug(t)}">${esc(t)} ${n}</a>`}).join(""):`<span class="chip">${g.works.length?g.works.length+" work"+(g.works.length>1?"s":""):"Nothing filed here yet"}</span>`}</span>${g.works.length?papersHTML(g.works):""}</span></div>`;
+    i++;
+    g.works.forEach((w,j)=>{html+=folderHTML(w,i,j%3);i++});
+  });
+  return `<div class="drawer"><div class="tray">${html}</div><div class="dfront"><span class="holder"><span class="card" style="--c:${label[1][0]};--t:${label[1][1]}">${esc(label[0])}</span></span><span class="pull"></span></div></div>`;
+}
+function drawer(s){
+  const ci=G.cats.findIndex(c=>c.slug===s),c=G.cats[ci];if(!c)return cabinet();
+  const prev=G.cats[(ci+G.cats.length-1)%G.cats.length],next=G.cats[(ci+1)%G.cats.length];
+  const ws=G.order.filter(w=>w.category===c.name);
+  const groups=G.subs[c.name].map(sub=>({name:sub,types:G.types[sub]||[],works:ws.filter(w=>w.subcategory===sub)}));
+  view.innerHTML=`<div class="head"><div><div class="crumbs"><a href="#cabinet">Cabinet</a> / Drawer</div><h1>${esc(c.name)}</h1><p>${ws.length} works in ${groups.length} sections. Hover a black guide to fan out its papers, or a tab to lift one folder.</p></div>
+  <div class="row" style="display:flex;gap:8px"><a class="btn" href="#drawer-${prev.slug}" title="${esc(prev.name)}">← Previous drawer</a><a class="btn" href="#drawer-${next.slug}" title="${esc(next.name)}">Next drawer →</a></div></div>
+  <div class="chips">${groups.map(g=>`<a class="chip${g.works.length?"":" off"}" href="#drawer-${c.slug}" data-g="g-${slug(g.name)}">${esc(g.name)} ${g.works.length}</a>`).join("")}</div>
+  ${stack(groups,[c.name,c.col])}`;
+  view.querySelectorAll("[data-g]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();const t=document.getElementById(a.dataset.g);if(t){t.scrollIntoView({behavior:"smooth",block:"center"});t.focus({preventScroll:true})}}));
+}
+function nodePage(kind,key){
+  let title,crumb,sub,note,ws,col=["#141414","#f4f1e8"];
+  if(kind==="designer"){const d=Object.values(G.D).find(x=>slug(x.id)===key);if(!d)return cabinet();title=d.name;crumb="Designer";sub=`${d.kind}${d.years?", active "+d.years:""}`;note=d.notes;ws=worksWhere(w=>w.designer===d.id);col=["#f2d54a","#121212"]}
+  else if(kind==="entity"){const e=Object.values(G.E).find(x=>slug(x.id)===key);if(!e)return cabinet();title=e.name;crumb="Client";sub=e.type;note=e.notes;ws=worksWhere(w=>w.entity===e.id);col=["#ef9ab8","#121212"]}
+  else if(kind==="kind"){const v=G.order.flatMap(w=>w.types).find(t=>slug(t)===key);if(!v)return cabinet();title=v;crumb="Type";ws=worksWhere(w=>w.types.includes(v));sub="";col=["#bcccff","#121212"]}
+  else{const k={movement:"movement",style:"designStyle",typo:"typeStyle"}[kind];const v=G.order.map(w=>w[k]).find(v=>slug(v)===key)||MOVES.find(m=>slug(m)===key);if(!v)return cabinet();title=v;crumb={movement:"Design philosophy",style:"Design style",typo:"Typography style"}[kind];ws=worksWhere(w=>w[k]===v);sub=kind==="style"?(Object.keys(G.styles).find(m=>G.styles[m].includes(v))||""):"";col=["#217a4b","#fff"]}
+  const groups=G.cats.map(c=>({name:c.name,works:ws.filter(w=>w.category===c.name)})).filter(g=>g.works.length);
+  view.innerHTML=`<div class="head"><div><div class="crumbs"><a href="#cabinet">Cabinet</a> / ${esc(crumb)}</div><h1>${esc(title)}</h1><p>${esc(sub)}${sub?". ":""}${ws.length} work${ws.length===1?"":"s"}${ws.length?", "+esc(years(ws)):""}.${note?" "+esc(note):""}</p></div></div>
+  ${ws.length?stack(groups.map(g=>({...g,types:[...new Set(g.works.flatMap(w=>w.types))]})),[title,col]):"<p>No works linked yet.</p>"}`;
+}
+
+function graphSVG(w){
+  const e=G.E[w.entity],d=G.D[w.designer],c=catOf(w.category);
+  const N=[["Entity",e?e.name:"—",e?`#entity-${slug(e.id)}`:"",210,38,"#ef9ab8"],["Intent",w.intent,"",372,112,"#fbfaf6"],["Designer",d?d.name:"—",d?`#designer-${slug(d.id)}`:"",318,262,"#f2d54a"],["Philosophy",w.movement.replace(" Design",""),`#movement-${slug(w.movement)}`,102,262,"#9fd8b6"],["Solution",w.kind,c?`#drawer-${c.slug}`:"",48,112,"#bcccff"]];
+  const cut=(s,n)=>(s=String(s||"—")).length>n?s.slice(0,n-1)+"…":s;
+  const L=(a,b,dash)=>`<line x1="${N[a][3]}" y1="${N[a][4]}" x2="${N[b][3]}" y2="${N[b][4]}" stroke="#8d877a" stroke-width="1.3"${dash?' stroke-dasharray="4 4"':""} marker-end="url(#ar)"/>`;
+  const spokes=N.map(n=>`<line x1="210" y1="160" x2="${n[3]}" y2="${n[4]}" stroke="#1a1916" stroke-width="1.6"/>`).join("");
+  const nodes=N.map(n=>{const t=`<rect x="${n[3]-70}" y="${n[4]-24}" width="140" height="48" rx="3" fill="${n[5]}" stroke="#1a1916" stroke-width="1.2"/><text x="${n[3]}" y="${n[4]-6}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#5d5a53">${n[0]}</text><text x="${n[3]}" y="${n[4]+13}" text-anchor="middle" font-family="Instrument Serif,Georgia,serif" font-size="16" fill="#1a1916">${esc(cut(n[1],19))}</text>`;return n[2]?`<a href="${n[2]}">${t}</a>`:t}).join("");
+  return `<svg viewBox="-28 0 476 300" role="img" aria-label="How this work connects"><defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#8d877a"/></marker></defs>${spokes}${L(0,1)}${L(1,2)}${L(2,3)}${L(3,4)}${L(1,4,1)}
+   <circle cx="210" cy="160" r="46" fill="#1a1916"/><text x="210" y="156" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#f4f1e8">Designed work</text><text x="210" y="173" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="#f2d54a">${esc(w.id)}</text>${nodes}</svg>`;
+}
+function related(w){
+  const seen=new Set([w.key]),out=[];
+  const add=(f,why)=>G.order.filter(f).forEach(x=>{if(!seen.has(x.key)&&out.length<10){seen.add(x.key);out.push([x,why])}});
+  add(x=>x.designer===w.designer,"Same designer");add(x=>x.entity===w.entity,"Same client");add(x=>x.designStyle&&x.designStyle===w.designStyle,"Same design style");add(x=>x.types.some(t=>w.types.includes(t)),"Same type");add(x=>x.subcategory===w.subcategory,"Same subcategory");add(x=>x.movement===w.movement,"Same philosophy");
+  return out;
+}
+function entry(key){
+  const w=G.W[key];if(!w)return false;
+  const e=G.E[w.entity],d=G.D[w.designer],c=catOf(w.category);
+  const sib=G.order.filter(x=>x.category===w.category),i=sib.indexOf(w),prev=sib[(i+sib.length-1)%sib.length],next=sib[(i+1)%sib.length];
+  const full=okUrl(w.img.full),src=okUrl(w.source),rel=related(w),hasImg=!!okUrl(w.img.web);
+  const px=w.img.w&&w.img.h?`${w.img.w} × ${w.img.h} px`:"";
+  workEl.innerHTML=`<div class="fbar"><div class="crumbs"><a href="#cabinet">Cabinet</a> / <a href="#drawer-${c.slug}">${esc(c.name)}</a> / ${esc(w.subcategory)} / ${esc(w.id)}</div>
+   <a class="btn" href="#work-${prev.key}" aria-label="Previous work">← ${esc(prev.id)}</a><a class="btn" href="#work-${next.key}" aria-label="Next work">${esc(next.id)} →</a><a class="btn" href="#${esc(lastView)}" id="close">Close</a></div>
+  <div class="wrap"><div class="entry">
+   <div class="plate" style="--c:${w.col[0]};--t:${w.col[1]}">
+    <figure class="mount" style="margin:0"><img alt="${esc(w.title)}" data-w="${w.key}" src="${esc(imgWeb(w))}"><i></i><i></i><i></i><i></i></figure>
+    <div class="row"><a class="btn" href="${esc(full)}" target="_blank" rel="noopener" aria-disabled="${!full}">Full resolution ↗</a><a class="btn" href="${esc(src)}" target="_blank" rel="noopener" aria-disabled="${!src}">Source ↗</a></div>
+    <small>${hasImg?`Web copy shown${px?`; original ${px}`:""}.`:"Drawn placeholder: no image linked to this record yet."}</small>
+   </div>
+   <div class="right">
+    <article class="sheet"><span class="stamp">File ${esc(w.id)}</span><h1>${esc(w.title)}</h1>
+     <dl class="meta"><dt>Year</dt><dd>${esc(w.year||"—")}</dd><dt>Country</dt><dd>${esc(w.country||"—")}</dd><dt>Category</dt><dd><a href="#drawer-${c.slug}">${esc(w.category)}</a></dd><dt>Subcategory</dt><dd>${esc(w.subcategory)}</dd>${w.types.length?`<dt>Type${w.types.length>1?"s":""}</dt><dd>${w.types.map(t=>`<a href="#kind-${slug(t)}">${esc(t)}</a>`).join(", ")}</dd>`:""}<dt>Size</dt><dd>${esc(w.dims||"—")}</dd>${w.credit?`<dt>Credit</dt><dd>${esc(w.credit)}</dd>`:""}</dl>
+     <h2>Intent</h2><p>${esc(w.intent||"Not recorded.")}</p>${w.notes?`<h2>Notes</h2><p>${esc(w.notes)}</p>`:""}</article>
+    <div class="notes">
+     <a class="sn" style="background:#f2d54a;--r:-1.5deg" href="${d?`#designer-${slug(d.id)}`:"#cabinet"}"><small>Designer</small><b>${esc(d?d.name:"Unknown")}</b><span>${esc(d?[d.kind,d.years&&"active "+d.years].filter(Boolean).join(", "):"")}</span><em>${d?G.order.filter(x=>x.designer===d.id).length+" works →":""}</em></a>
+     <a class="sn" style="background:#ef9ab8;--r:1.2deg" href="${e?`#entity-${slug(e.id)}`:"#cabinet"}"><small>Entity</small><b>${esc(e?e.name:"Unknown")}</b><span>${esc(e?e.type:"")}</span><em>${e?G.order.filter(x=>x.entity===e.id).length+" works →":""}</em></a>
+     <div class="sn" style="background:#9fd8b6;--r:.8deg"><small>Design philosophy</small><b><a href="#movement-${slug(w.movement)}" style="color:inherit">${esc(w.movement)}</a></b><span class="tags">${w.designStyle?`<a href="#style-${slug(w.designStyle)}">${esc(w.designStyle)}</a>`:""}${w.typeStyle?`<a href="#typo-${slug(w.typeStyle)}">${esc(w.typeStyle)}</a>`:""}</span></div>
+     <div class="sn" style="background:#bcccff;--r:-1deg"><small>Solution</small><b><a href="#drawer-${c.slug}" style="color:inherit">${esc(w.subcategory)}</a></b><span>${esc(w.category)}</span><span class="tags">${w.types.map(t=>`<a href="#kind-${slug(t)}">${esc(t)}</a>`).join("")}</span></div>
+    </div>
+    <div class="gcard"><h2>How it connects</h2>${graphSVG(w)}</div>
+   </div></div>
+   ${rel.length?`<div class="rel"><h2>Connected works</h2><div class="relrow">${rel.map(([x,why])=>`<a href="#work-${x.key}" style="--c:${x.col[0]}"><img loading="lazy" alt="" data-w="${x.key}" src="${esc(imgThumb(x))}"><b>${esc(x.title)}</b><small>${why} · ${esc(x.year)}</small></a>`).join("")}</div></div>`:""}
+  </div>`;
+  workEl.classList.add("on");document.body.style.overflow="hidden";workEl.scrollTop=0;
+  return true;
+}
+function closeEntry(){workEl.classList.remove("on");workEl.innerHTML="";document.body.style.overflow=""}
+
+function route(){
+  if(!G)return;
+  const h=location.hash.slice(1)||"cabinet";
+  if(h.startsWith("work-")&&entry(h.slice(5)))return;
+  closeEntry();lastView=h;
+  const m=h.match(/^(drawer|designer|entity|movement|style|typo|kind)-(.+)$/);
+  if(!m)cabinet();else if(m[1]==="drawer")drawer(m[2]);else nodePage(m[1],m[2]);
+  scrollTo(0,0);
+}
+addEventListener("hashchange",route);
+addEventListener("keydown",e=>{
+  if(e.target.matches("input"))return;
+  const h=location.hash.slice(1);
+  if(e.key==="Escape"){if(workEl.classList.contains("on"))location.hash=lastView;else if(h&&h!=="cabinet")location.hash="cabinet"}
+  if(workEl.classList.contains("on")&&(e.key==="ArrowRight"||e.key==="ArrowLeft")){const a=workEl.querySelectorAll(".fbar .btn")[e.key==="ArrowRight"?1:0];if(a)location.hash=a.getAttribute("href").slice(1)}
+});
+
+/* ---------- search ---------- */
+const q=$("#q"),res=$("#res");
+q.addEventListener("input",()=>{
+  const v=q.value.trim().toLowerCase();if(!v||!G){res.innerHTML="";return}
+  const hit=s=>String(s||"").toLowerCase().includes(v);
+  const items=[];
+  Object.values(G.D).filter(d=>hit(d.name)).slice(0,3).forEach(d=>items.push([`#designer-${slug(d.id)}`,"Designer",d.name,d.kind+" · "+d.years,["#f2d54a","#121212"]]));
+  Object.values(G.E).filter(x=>hit(x.name)).slice(0,3).forEach(x=>items.push([`#entity-${slug(x.id)}`,"Client",x.name,x.type,["#ef9ab8","#121212"]]));
+  G.order.filter(w=>[w.title,w.id,w.kind,w.subcategory,w.category,w.designStyle,w.typeStyle,w.movement,w.country,w.year,(G.E[w.entity]||{}).name,(G.D[w.designer]||{}).name].some(hit)).slice(0,8).forEach(w=>items.push([`#work-${w.key}`,w.id,w.title,w.kind+" · "+w.year,w.col]));
+  res.innerHTML=items.length?items.map(i=>`<li><a href="${esc(i[0])}"><b style="background:${i[4][0]};color:${i[4][1]}">${esc(i[1])}</b><span>${esc(i[2])}</span><small>${esc(i[3])}</small></a></li>`).join(""):`<li class="none">Nothing filed under “${esc(q.value)}”.</li>`;
+});
+const clearQ=()=>{q.value="";res.innerHTML=""};
+res.addEventListener("click",e=>{if(e.target.closest("a"))clearQ()});
+q.addEventListener("keydown",e=>{if(e.key==="Escape"){clearQ();q.blur()}if(e.key==="Enter"){const a=res.querySelector("a");if(a){location.hash=a.getAttribute("href").slice(1);clearQ()}}});
+
+/* ---------- load ---------- */
+async function load(){
+  let p=null,msg="";
+  if(DATA_URL){try{const r=await fetch(DATA_URL,{cache:"no-store"});if(!r.ok)throw new Error(r.status);p=await r.json();msg=`Live from Google Sheets · updated ${new Date(p.updated).toLocaleString()}`}catch(err){msg="Couldn't reach the Google Sheet, showing the sample records instead."}}
+  if(!p){p=SAMPLE;msg=msg||"Showing the 24 sample records from the Google Sheet. Images are drawn placeholders until scans are linked."}
+  G=build(p);$("#src").textContent=msg;route();
+}
+load();
+}
+</script>
+</body>
+</html>
