@@ -6,7 +6,7 @@
 <title>Dossier Archives</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Montserrat:wght@400;500&family=Mulish:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Montserrat:wght@400;500&family=Mulish:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 /* VOICE  occasion: a design archive you browse with your hands
    IDEA   a steel card cabinet: one drawer per Solution category, black guide cards per subcategory, folders per work
@@ -71,17 +71,17 @@ header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom
 .dr:hover .pull,.dr:focus-visible .pull{transform:translateY(12px)}
 .dr:hover .peek,.dr:focus-visible .peek{transform:translateY(-30px)}
 .dr:focus-visible .front{outline:3px solid #1f3fd1;outline-offset:3px}
-.intro{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:clamp(20px,4vw,56px);align-items:end;padding:clamp(28px,4vw,48px) 0 26px}
+.intro{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(18px,2.4vw,28px);align-items:start;padding:clamp(28px,4vw,48px) 0 26px}
 .lead .l1{font:400 clamp(19px,2vw,22px)/1.35 var(--f-struct);margin:0 0 16px;max-width:42ch;text-wrap:pretty}
 .lead .l2,.prose p{font:300 16px/1.55 var(--f-edit);margin:0 0 14px;max-width:62ch}
 .prose .l1{font:400 22px/1.35 var(--f-struct);max-width:44ch}
-.dict{border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);padding:14px 0 12px}
-.dict h1,.dict h2{font:700 36px/1.1 var(--f-display);margin:0}
-.dict h1 i,.dict h2 i{font:300 16px var(--f-edit);font-style:italic;color:var(--soft);margin-left:6px}
-.dict .ipa{font:300 14px/1.4 var(--f-edit);color:var(--soft);margin:4px 0 8px}
-.dict p{font:300 16px/1.55 var(--f-edit);margin:0}
-.prose .dict{max-width:520px;margin:22px 0 26px}
-.prose .dict h2{font:700 36px/1.1 var(--f-display);letter-spacing:0;text-transform:none;margin:0}
+.dict{border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);padding:16px 0 14px;max-width:760px}
+.dict h1,.dict h2{font:700 clamp(40px,5vw,56px)/1.05 var(--f-display);margin:0}
+.dict h1 i,.dict h2 i{font:700 18px var(--f-edit);font-style:italic;color:var(--ink);margin-left:8px}
+.dict .ipa{font:700 16px/1.4 var(--f-edit);color:var(--ink);margin:6px 0 8px}
+.dict p{font:700 clamp(17px,1.8vw,20px)/1.45 var(--f-edit);margin:0}
+.prose .dict{max-width:760px;margin:6px 0 26px}
+.prose .dict h2{font:700 clamp(40px,5vw,56px)/1.05 var(--f-display);letter-spacing:0;text-transform:none;margin:0}
 .prose h2{font:400 15px/1.3 var(--f-struct);letter-spacing:.07em;text-transform:uppercase;margin:30px 0 10px}
 .prose .btn{margin-right:8px}
 /* binders: ring-binder spines standing on a shelf */
@@ -390,9 +390,9 @@ document.addEventListener("error",e=>{const t=e.target;if(t.tagName==="IMG"&&t.d
 const BINDERS=[["cabinet","Home","The cabinet"],["index","Index","Designers & clients"],["about","About us","The project"],["contact","Contact us","Write to us"]];
 function introHTML(){
   return `<section class="intro">
+   <aside class="dict" aria-label="Dictionary definition of dossier"><h1>dossier <i>(noun)</i></h1><p class="ipa">/ˈdɔːsieɪ/</p><p>a collection of documents that contain information about a person, an event or a subject.</p></aside>
    <div class="lead"><p class="l1">Literal to the definition of the word, Dossier is the vessel with which we collect the intangible Egyptian design identity and preserve its supporting information, digitally delivering it to you.</p>
    <p class="l2">Dossier isn’t just preserving objects, it is preserving evidence of the role design played in Egyptian society.</p></div>
-   <aside class="dict" aria-label="Dictionary definition of dossier"><h1>dossier <i>(noun)</i></h1><p class="ipa">/ˈdɔːsieɪ/</p><p>a collection of documents that contain information about a person, an event or a subject.</p></aside>
   </section>`;
 }
 function bindersHTML(active){
@@ -405,9 +405,9 @@ function pageShell(key,title,body){
 function aboutPage(){
   const n=G.order.length;
   pageShell("about","About us",`<div class="prose">
+   <aside class="dict"><h2>dossier <i>(noun)</i></h2><p class="ipa">/ˈdɔːsieɪ/</p><p>a collection of documents that contain information about a person, an event or a subject.</p></aside>
    <p class="l1">Literal to the definition of the word, Dossier is the vessel with which we collect the intangible Egyptian design identity and preserve its supporting information, digitally delivering it to you.</p>
    <p>Dossier isn’t just preserving objects, it is preserving evidence of the role design played in Egyptian society.</p>
-   <aside class="dict"><h2>dossier <i>(noun)</i></h2><p class="ipa">/ˈdɔːsieɪ/</p><p>a collection of documents that contain information about a person, an event or a subject.</p></aside>
    <h2>How the archive is filed</h2>
    <p>Every piece is filed by what it was made to do. The cabinet has one drawer for each kind of solution: Practical Ephemera, Promotional Collateral, Media Marketing Collateral, and Social and Commemorative Ephemera. Inside each drawer, guide cards mark the subcategories, and every paper is one work.</p>
    <p>Each work is recorded with the client it was made for, the people or studios who designed it, its design philosophy, typography, intent, size and source, so that one object leads to the others it shares a history with.</p>
