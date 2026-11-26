@@ -72,28 +72,26 @@ header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom
 .dr:hover .peek,.dr:focus-visible .peek{transform:translateY(-30px)}
 .dr:focus-visible .front{outline:3px solid #1f3fd1;outline-offset:3px}
 .intro{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(18px,2.4vw,28px);align-items:start;padding:clamp(28px,4vw,48px) 0 26px}
+.dict{font:700 clamp(15px,1.6vw,19px)/1.35 var(--f-display);letter-spacing:0;text-transform:none;margin:0;padding:12px 0;border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);text-wrap:balance}
+.dict b{font-size:1.45em;margin-right:4px}
+.dict i{font-style:italic;margin-right:6px}
+.dict .ipa{margin-right:10px}
+.prose .dict{margin:4px 0 24px;max-width:none}
 .lead .l1{font:400 clamp(19px,2vw,22px)/1.35 var(--f-struct);margin:0 0 16px;max-width:42ch;text-wrap:pretty}
 .lead .l2,.prose p{font:300 16px/1.55 var(--f-edit);margin:0 0 14px;max-width:62ch}
 .prose .l1{font:400 22px/1.35 var(--f-struct);max-width:44ch}
-.dict{border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);padding:16px 0 14px;max-width:760px}
-.dict h1,.dict h2{font:700 clamp(40px,5vw,56px)/1.05 var(--f-display);margin:0}
-.dict h1 i,.dict h2 i{font:700 18px var(--f-edit);font-style:italic;color:var(--ink);margin-left:8px}
-.dict .ipa{font:700 16px/1.4 var(--f-edit);color:var(--ink);margin:6px 0 8px}
-.dict p{font:700 clamp(17px,1.8vw,20px)/1.45 var(--f-edit);margin:0}
-.prose .dict{max-width:760px;margin:6px 0 26px}
-.prose .dict h2{font:700 clamp(40px,5vw,56px)/1.05 var(--f-display);letter-spacing:0;text-transform:none;margin:0}
 .prose h2{font:400 15px/1.3 var(--f-struct);letter-spacing:.07em;text-transform:uppercase;margin:30px 0 10px}
 .prose .btn{margin-right:8px}
 /* binders: ring-binder spines standing on a shelf */
-.binders{display:flex;gap:clamp(8px,1.4vw,16px);align-items:flex-end;padding:22px 0 0;border-bottom:6px solid var(--ink);margin-bottom:22px;overflow-x:auto}
-.binder{position:relative;flex:1 1 0;min-width:120px;max-width:230px;height:clamp(150px,16vw,190px);background:var(--c);color:var(--t);border-radius:6px 6px 0 0;text-decoration:none;display:flex;flex-direction:column;align-items:center;padding:16px 10px 0;box-shadow:inset 10px 0 0 rgba(0,0,0,.12),inset -3px 0 0 rgba(255,255,255,.25);transition:transform .3s cubic-bezier(.2,.8,.2,1);outline:none}
-.binder:hover,.binder:focus-visible{transform:translateY(-10px)}
+.binders{display:flex;gap:clamp(6px,1vw,12px);align-items:flex-end;padding:16px 0 0;border-bottom:6px solid var(--ink);margin-bottom:22px;overflow-x:auto}
+.binder{position:relative;flex:0 1 150px;min-width:104px;max-width:150px;height:clamp(104px,10vw,124px);background:var(--c);color:var(--t);border-radius:6px 6px 0 0;text-decoration:none;display:flex;flex-direction:column;align-items:center;padding:12px 8px 0;box-shadow:inset 8px 0 0 rgba(0,0,0,.12),inset -3px 0 0 rgba(255,255,255,.25);transition:transform .3s cubic-bezier(.2,.8,.2,1);outline:none}
+.binder:hover,.binder:focus-visible{transform:translateY(-7px)}
 .binder:focus-visible{box-shadow:0 0 0 3px var(--ink)}
-.binder.on{transform:translateY(-16px)}
-.binder .slip{width:86%;background:#fbfaf6;color:#121212;border:1.5px solid #121212;padding:10px 8px;text-align:center;display:grid;gap:4px}
-.binder .slip b{font:700 clamp(16px,1.6vw,19px)/1.1 var(--f-display)}
-.binder .slip small{font:300 10px/1.3 var(--f-edit);letter-spacing:.05em;text-transform:uppercase}
-.binder .ring{position:absolute;bottom:22px;left:50%;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:var(--bg);box-shadow:inset 0 3px 4px rgba(0,0,0,.35)}
+.binder.on{transform:translateY(-11px)}
+.binder .slip{width:88%;background:#fbfaf6;color:#121212;border:1.5px solid #121212;padding:6px 5px;text-align:center;display:grid;gap:4px}
+.binder .slip b{font:700 15px/1.1 var(--f-display)}
+.binder .slip small{font:300 9px/1.3 var(--f-edit);letter-spacing:.05em;text-transform:uppercase}
+.binder .ring{position:absolute;bottom:14px;left:50%;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:var(--bg);box-shadow:inset 0 3px 4px rgba(0,0,0,.35)}
 .home-stats{margin:0 0 20px}
 .head.page{padding-top:6px}
 .contact{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(20px,4vw,56px);align-items:start;padding-bottom:50px}
@@ -106,7 +104,7 @@ header.top{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom
 .cform .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 .cstatus{font:300 14px/1.4 var(--f-edit);margin:6px 0 0;min-height:1.4em}
 @media(max-width:900px){.intro,.contact{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:600px){.binders{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;overflow:visible}.binder{min-width:0;max-width:none;height:118px;padding:10px 4px 0}.binder .slip{width:94%;padding:7px 3px}.binder .slip b{font-size:13px}.binder .slip small{display:none}.binder .ring{width:20px;height:20px;margin-left:-10px;bottom:12px}}
+@media(max-width:600px){.binders{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;overflow:visible}.binder{min-width:0;max-width:none;flex:1 1 0;height:96px;padding:8px 4px 0}.binder .slip{width:94%;padding:7px 3px}.binder .slip b{font-size:12px}.binder .slip small{display:none}.binder .ring{width:16px;height:16px;margin-left:-8px;bottom:10px}}
 .home{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:28px;align-items:start;padding-bottom:40px}
 .homemain .cab{margin-top:0}
 .filters{position:sticky;top:16px;background:var(--panel);border:1.5px solid var(--line);border-radius:6px;padding:16px;max-height:calc(100vh - 32px);overflow:auto}
@@ -390,7 +388,7 @@ document.addEventListener("error",e=>{const t=e.target;if(t.tagName==="IMG"&&t.d
 const BINDERS=[["cabinet","Home","The cabinet"],["index","Index","Designers & clients"],["about","About us","The project"],["contact","Contact us","Write to us"]];
 function introHTML(){
   return `<section class="intro">
-   <aside class="dict" aria-label="Dictionary definition of dossier"><h1>dossier <i>(noun)</i></h1><p class="ipa">/ˈdɔːsieɪ/</p><p>a collection of documents that contain information about a person, an event or a subject.</p></aside>
+   <h1 class="dict" aria-label="dossier, noun: a collection of documents that contain information about a person, an event or a subject"><b>dossier</b> <i>(noun)</i> <span class="ipa">/ˈdɔːsieɪ/</span> <span>a collection of documents that contain information about a person, an event or a subject.</span></h1>
    <div class="lead"><p class="l1">Literal to the definition of the word, Dossier is the vessel with which we collect the intangible Egyptian design identity and preserve its supporting information, digitally delivering it to you.</p>
    <p class="l2">Dossier isn’t just preserving objects, it is preserving evidence of the role design played in Egyptian society.</p></div>
   </section>`;
@@ -405,7 +403,7 @@ function pageShell(key,title,body){
 function aboutPage(){
   const n=G.order.length;
   pageShell("about","About us",`<div class="prose">
-   <aside class="dict"><h2>dossier <i>(noun)</i></h2><p class="ipa">/ˈdɔːsieɪ/</p><p>a collection of documents that contain information about a person, an event or a subject.</p></aside>
+   <p class="dict"><b>dossier</b> <i>(noun)</i> <span class="ipa">/ˈdɔːsieɪ/</span> <span>a collection of documents that contain information about a person, an event or a subject.</span></p>
    <p class="l1">Literal to the definition of the word, Dossier is the vessel with which we collect the intangible Egyptian design identity and preserve its supporting information, digitally delivering it to you.</p>
    <p>Dossier isn’t just preserving objects, it is preserving evidence of the role design played in Egyptian society.</p>
    <h2>How the archive is filed</h2>
