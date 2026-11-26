@@ -7,7 +7,7 @@ Already done in your Google Drive, in the folder **Design Archive**:
   - **Entities**: clients, each with a short code in `abbr`, e.g. BTR.
   - **Designers**: Individual, Print House or Studio, with years of activity.
   - **Solutions**: one row per type (columns: category, category_code, subcategory, subcategory_code, type). **Add a row here to add a new option.** It appears in the Works dropdowns straight away.
-  - **Styles**: one column per movement, with the movement name in row 1 and its styles below. Add styles anywhere in a column; to add a movement, fill in the next empty header.
+  - **Styles**: one column per movement, with the movement name in row 1 and its styles below, plus a **Typography** column whose next column holds a short description of each entry (shown on the site). To add a movement, fill in the next empty header.
   - **_lists** (hidden): works out each row's allowed options. Don't edit it.
 - **Originals (full quality)** and **Web (compressed)** folders.
 - 24 sample records, marked "Sample record".
@@ -19,9 +19,9 @@ Already done in your Google Drive, in the folder **Design Archive**:
 | category | all categories | Solutions |
 | subcategory | only the subcategories of that row's category | Solutions |
 | types | every type, as one rule for the whole column with multi-select; the script removes types that don't belong to the row's subcategory | Solutions, column E |
-| movement | all movements | Styles, row 1 |
+| movement | the Styles column headers, except Typography | Styles, row 1 |
 | design_style | only the styles under that row's movement | Styles |
-| typography_style | every style, from all movements | Styles |
+| typography_style | the entries in the **Typography** column | Styles |
 
 - **Turn on multi-select for types (one time).** Select J2:J1025, choose Data → Data validation, click the rule, open Advanced options, tick **Allow multiple selections**, then click Done. Column J has a single rule for the whole column, so this setting stays put.
 - **Types that don't fit.** If you pick a type that doesn't belong to the row's subcategory, the script removes it and shows a short message.

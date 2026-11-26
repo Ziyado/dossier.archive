@@ -11,7 +11,8 @@
  *   Images     one row per image, linked to its work by uid. A work can have any number; `order` sets the sequence.
  *   Solutions  category › subcategory › type (one type per row), with the codes used in IDs. Add a row to add an option.
  *              A work can take several types: comma-separated in Works › types.
- *   Styles     one column per movement (header = movement), styles listed below
+ *   Styles     one column per movement (header = movement), styles listed below;
+ *              plus a "Typography" column (with optional descriptions in the column to its right)
  *   _lists     hidden helper that feeds the per-row dropdowns (subcategory, design_style). Don't edit.
  *
  * Works › types has ONE whole-column rule listing every type, with "Allow multiple selections" ticked in the
@@ -132,7 +133,8 @@ function setupDropdowns(upTo) {
   lists.getRange(2, 1, lists.getMaxRows() - 1, 100).clearContent();
   Object.keys(LISTS).forEach(k => lists.getRange(2, LISTS[k].col, n, 1).setFormula(F[k]));
   lists.getRange('CW2').setFormula('=UNIQUE(FILTER(Solutions!$A$2:$A,Solutions!$A$2:$A<>""))');
-  lists.getRange('CX2').setFormula('=SORT(UNIQUE(TOCOL(Styles!$A$2:$Z,1)))');
+  lists.getRange('CX2').setFormula('=IFERROR(TOCOL(INDEX(Styles!$A$2:$Z,0,MATCH("Typography",Styles!$A$1:$Z$1,0)),1),"")');
+  lists.getRange('CY2').setFormula('=TOCOL(FILTER(Styles!$A$1:$Z$1,Styles!$A$1:$Z$1<>"",LEFT(Styles!$A$1:$Z$1,10)<>"Typography"),1)');
   // one rule per row
   Object.keys(LISTS).forEach(k => {
     const spec = LISTS[k], rules = [];
@@ -409,8 +411,21 @@ function readStyles_() {
 }
 function parseStyles(v) {
   const out = {};
-  v[0].forEach((m, c) => { if (String(m).trim()) out[String(m).trim()] = v.slice(1).map(r => String(r[c]).trim()).filter(Boolean); });
+  v[0].forEach((m, c) => {
+    const name = String(m).trim();
+    if (name && !/^typography/i.test(name)) out[name] = v.slice(1).map(r => String(r[c]).trim()).filter(Boolean);
+  });
   return out;
+}
+/** The Typography column of Styles, with the description from the column to its right. */
+function parseTypography(v) {
+  const c = v[0].findIndex(m => /^typography$/i.test(String(m).trim()));
+  if (c < 0) return [];
+  return v.slice(1).map(r => ({ name: String(r[c] || '').trim(), note: String(r[c + 1] || '').trim() })).filter(t => t.name);
+}
+function readTypography_() {
+  const sh = SpreadsheetApp.getActive().getSheetByName('Styles');
+  return sh && sh.getLastRow() ? parseTypography(sh.getDataRange().getValues()) : [];
 }
 
 /* ---------------- JSON feed ---------------- */
@@ -434,6 +449,7 @@ function readTables_() {
   });
   t.Solutions = readSolutions_().tree;
   t.Styles = readStyles_();
+  t.Typography = readTypography_();
   return t;
 }
 
@@ -462,6 +478,7 @@ function buildPayload(t) {
     updated: new Date().toISOString(),
     structure: t.Solutions || [],
     styles: t.Styles || {},
+    typography: t.Typography || [],
     entities: (t.Entities || []).map(r => ({ id: s(r.entity_id), abbr: s(r.abbr), name: s(r.name), type: s(r.type), notes: s(r.notes) })).filter(x => x.id),
     designers: (t.Designers || []).map(r => ({ id: s(r.designer_id), name: s(r.name), kind: s(r.kind), years: s(r.years_active), notes: s(r.notes) })).filter(x => x.id),
     works
@@ -497,4 +514,4 @@ function readCache_(cache) {
 }
 function clearCache() { CacheService.getScriptCache().remove('feed_n'); }
 
-if (typeof module !== 'undefined') module.exports = { buildPayload, parseSolutions, parseStyles, makeId_, abbr_, idInName_ };
+if (typeof module !== 'undefined') module.exports = { buildPayload, parseSolutions, parseStyles, parseTypography, makeId_, abbr_, idInName_ };
