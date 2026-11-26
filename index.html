@@ -237,12 +237,16 @@ const hex2hsl=h=>{let r=parseInt(h.slice(1,3),16)/255,g=parseInt(h.slice(3,5),16
 const hsl2hex=(H,S,L)=>{S/=100;L/=100;const k=n=>(n+H/30)%12,a=S*Math.min(L,1-L),f=n=>L-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));return"#"+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,"0")).join("")};
 const lum=h=>{const c=[1,3,5].map(i=>{const v=parseInt(h.slice(i,i+2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
 const pair=h=>[h,lum(h)>.36?"#121212":"#ffffff"];
-/* n shades of one hue in a shuffled order: evenly spaced tones (so no two look alike), with a little
-   random variation in saturation and hue. Seeded by the category name, so the order stays the same on every visit. */
+/* n strong variations of one colour, in a shuffled order: no pale tints. Tones stay close to the base
+   colour's own depth (±12% lightness), with clearly different hue and saturation, so each subcategory is a
+   distinct, saturated degree of its category colour. Seeded by the category name, so it's stable across visits. */
 function shades(hex,n,seed){const[H,S,L]=hex2hsl(hex);if(n<=1)return[pair(hex)];const r=rng(hash(seed||hex)+101);
-  const lo=Math.max(22,L-30),hi=Math.min(86,L+22),tones=Array.from({length:n},(_,i)=>lo+(hi-lo)*i/(n-1));
-  for(let i=n-1;i>0;i--){const j=Math.floor(r()*(i+1));[tones[i],tones[j]]=[tones[j],tones[i]]}
-  return tones.map(l=>pair(hsl2hex((H+(r()-.5)*12+360)%360,Math.min(100,S*(0.7+r()*0.4)),l+(r()-.5)*4)))}
+  const steps=Array.from({length:n},(_,i)=>i/(n-1));
+  for(let i=n-1;i>0;i--){const j=Math.floor(r()*(i+1));[steps[i],steps[j]]=[steps[j],steps[i]]}
+  return steps.map((t,k)=>{const hue=(H+(t-.5)*36+(r()-.5)*6+360)%360,
+    l=Math.max(28,Math.min(72,L+((k*7)%5-2)*5+(r()-.5)*4)),
+    sat=Math.max(72,Math.min(100,S+(r()-.5)*24));
+    return pair(hsl2hex(hue,sat,l))})}
 const tint=(hex,amt)=>{const[H,S,L]=hex2hsl(hex);return hsl2hex(H,Math.min(S,70),L+(96-L)*amt)};
 const MOVES=["Early Modernist Design","Modernist Design","Post-Modernist Design"];
 const $=s=>document.querySelector(s);
@@ -363,7 +367,7 @@ function stack(groups,label){
   groups.forEach(g=>{
     const types=g.types||[];
     const gc=g.col||G.subCol[g.name]||(G.cats.find(c=>c.name===g.name)||{}).col||["#121212","#fff"];
-    html+=`<div class="folder guide${g.works.length?"":" empty"}" id="g-${slug(g.name)}" tabindex="0" style="--i:${i};z-index:${i+1};--gc:${gc[0]};--gt:${gc[1]};--gb:${tint(gc[0],.82)}"><span class="tab" style="--x:2%"><span>${esc(g.name)}</span><em>${String(g.works.length).padStart(3,"0")}</em></span>
+    html+=`<div class="folder guide${g.works.length?"":" empty"}" id="g-${slug(g.name)}" tabindex="0" style="--i:${i};z-index:${i+1};--gc:${gc[0]};--gt:${gc[1]};--gb:${tint(gc[0],.25)}"><span class="tab" style="--x:2%"><span>${esc(g.name)}</span><em>${String(g.works.length).padStart(3,"0")}</em></span>
      <span class="body"><span class="chips">${types.length?types.map(t=>{const n=g.works.filter(w=>w.types.includes(t)).length;return `<a class="chip${n?"":" off"}" href="#kind-${slug(t)}">${esc(t)} ${n}</a>`}).join(""):`<span class="chip">${g.works.length?g.works.length+" work"+(g.works.length>1?"s":""):"Nothing filed here yet"}</span>`}</span>${g.works.length?papersHTML(g.works):""}</span></div>`;
     i++;
   });
